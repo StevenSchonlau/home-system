@@ -30,8 +30,9 @@ To see docker containers running on the pi: docker ps
 
 To stop the container: docker stop home-system-app
 
-Any time you make a change, pull the repo on the pi and run the last 2 docker commands: 
+Any time you make a change, pull the repo on the pi and run these docker commands: 
 - docker build -t angular-pi5-app:latest .
+- docker rm -f home-system-app
 - docker run -d -p 8080:80 --name home-system-app angular-pi5-app:latest
 
 <br>
