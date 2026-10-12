@@ -7,7 +7,21 @@
 
 ## To run locally:
 
-TODO
+- Run `npm ci`, then `npm start`.
+- Open `http://localhost:4200/`. The home page redirects to `/weather`.
+- Allow browser location access to load current conditions and today's hourly forecast.
+
+## Weather
+
+`WeatherService.getForecast(latitude, longitude)` returns an observable of the typed
+Open-Meteo forecast response. It requests temperature, humidity, wind speed, and
+hourly temperature and precipitation probability from `https://api.open-meteo.com/v1/forecast`.
+No API key is required. Units and the location's time zone are displayed with the data.
+
+The weather page uses browser geolocation and provides a refresh button and visible
+location/network errors. Location access requires HTTPS or localhost; accessing the
+Pi over plain HTTP at its local IP will generally block geolocation. Serve it over
+HTTPS to use the weather page remotely.
 
 ## To run on a Pi:
 
