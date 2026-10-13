@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alert Popup Demo</title>
+
+  <!-- ============ STYLE: how things look ============ -->
+  <style>
+    /* Colors used everywhere. Alerts are RED, reminders are BLUE. */
+    :root {
+      --alert:        #d93a3f;
+      --alert-light:  #fdecec;
+      --reminder:     #2f78c9;
+      --reminder-light: #e8f1fc;
+    }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f5f7;
+      padding: 32px 16px;
+      margin: 0;
+      color: #222;
+    }
+    h1 { margin: 0 0 6px; }
+    button {
+      font-size: 15px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 4px 4px 4px 0;
+    }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Page layout: Reminders | Alerts | Event queue.
+       On narrow screens (like phones) they stack on top of each other. */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr;
+      gap: 24px;
+      max-width: 1200px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    .layout h2 { margin: 0 0 12px; font-size: 20px; }
+
+    /* ----- Trigger lists ----- */
+    .trigger-list { list-style: none; padding: 0; margin: 0; }
+    .trigger-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    #alertTriggers li    { border-left: 6px solid var(--alert); }
+    #reminderTriggers li { border-left: 6px solid var(--reminder); }
+    .trigger-btn { background: #333; color: white; white-space: nowrap; }
+
+    /* ----- Event queue panel ----- */
+    .queue-panel {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    }
+    .count {
+      display: inline-block;
+      min-width: 24px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #333;
+      color: white;
+      font-size: 14px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    /* "All clear" message when nothing is in the queue */
+    .empty { text-align: center; color: #444; padding: 8px 0 4px; }
+    .empty p { margin: 8px 0 0; line-height: 1.5; }
+    .empty strong { color: #1f9d48; font-size: 18px; }
+    .waiting-mascot svg { width: 220px; max-width: 100%; height: auto; }
+    .group-heading {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin: 12px 0 6px;
+    }
+    .group-heading.alert    { color: var(--alert); }
+    .group-heading.reminder { color: var(--reminder); }
+    .queue-list { list-style: none; padding: 0; margin: 0; }
+
+    /* One row in the queue */
+    .queue-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    .queue-item.alert    { background: var(--alert-light); }
+    .queue-item.reminder { background: var(--reminder-light); }
+    .queue-item:hover    { filter: brightness(0.97); }
+    .queue-item.selected.alert    { border-color: var(--alert); }
+    .queue-item.selected.reminder { border-color: var(--reminder); }
+    .queue-item .name { flex: 1; font-weight: 600; }
+    .queue-item .time { color: #666; font-size: 13px; white-space: nowrap; }
+
+    /* Badges: alerts are solid red, reminders are outlined blue */
+    .badge {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .badge.alert    { background: var(--alert); color: white; }
+    .badge.reminder { background: white; color: var(--reminder); border: 2px solid var(--reminder); }
+
+    /* Alerts get a pulsing badge so they grab attention */
+    .queue-item.alert .badge { animation: pulse 1.2s infinite; }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(217,58,63,0.6); }
+      50%      { box-shadow: 0 0 0 6px rgba(217,58,63,0); }
+    }
+
+    /* ----- The selected event, shown in full ----- */
+    .event-card {
+      display: none;
+      margin-bottom: 4px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid;
+    }
+    .event-card.show { display: block; }
+    .event-card.alert    { border-color: var(--alert); }
+    .event-card.reminder { border-color: var(--reminder); }
+    .card-header {
+      padding: 8px 14px;
+      color: white;
+      font-weight: 800;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .event-card.alert    .card-header { background: var(--alert); }
+    .event-card.reminder .card-header { background: var(--reminder); }
+    .card-body { padding: 14px 16px 12px; }
+    .card-body h3 { margin: 0 0 6px; }
+    .card-body p  { margin: 0 0 12px; line-height: 1.4; }
+
+    /* Button colors. The main button matches the event type. */
+    .primary   { color: white; }
+    .event-card.alert    .primary { background: var(--alert); }
+    .event-card.reminder .primary { background: var(--reminder); }
+    .secondary { background: #e8e8e8; color: #222; }
+
+    /* Alert Girl pictures */
+    .mascot { display: none; text-align: center; margin-bottom: 8px; }
+    .mascot.show { display: block; }
+    .mascot svg { width: 110px; height: auto; }
+    #mascot-air svg { width: 220px; }  /* the wider pictures get more room */
+    #mascot-water svg { width: 170px; }
+    #mascot-smoke svg { width: 190px; }
+    #mascot-filter svg { width: 130px; }
+    #mascot-install svg { width: 140px; }
+
+    /* ----- Toaster message: a small dark bar at the top of the screen ----- */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      max-width: calc(100% - 32px);
+      display: none;
+      z-index: 10;  /* keeps the toast on top of everything else */
+    }
+    .toast.show { display: block; }
+
+    /* ----- Fake photo upload window ----- */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .overlay.show { display: flex; }
+    .upload-window {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      width: 420px;
+      max-width: 100%;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+    }
+    .upload-window h3 { margin: 0 0 8px; }
+    .upload-window p  { margin: 0 0 14px; line-height: 1.4; }
+    .upload-window .primary { background: var(--reminder); }
+    .fake-folder { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 14px; }
+    .folder-name {
+      background: #f0f0f0;
+      padding: 8px 12px;
+      border-radius: 8px 8px 0 0;
+      font-weight: 600;
+    }
+    .fake-file {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+    .fake-file:hover    { background: #f6f6f6; }
+    .fake-file.selected { background: #dbe9ff; }
+    .file-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #8ec5fc, #e0c3fc);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============ CONTENT: what's on the page ============ -->
+  <h1>Alert Popup Demo</h1>
+  <p>Click "Trigger" to pretend an event just happened. Trigger several to see them queue up.</p>
+
+  <div class="layout">
+    <section>
+      <h2>Reminders</h2>
+      <ul class="trigger-list" id="reminderTriggers"></ul>
+    </section>
+    <section>
+      <h2>Alerts</h2>
+      <ul class="trigger-list" id="alertTriggers"></ul>
+    </section>
+
+    <!-- The queue of triggered events -->
+    <section class="queue-panel">
+      <h2>Event queue <span class="count" id="queueCount">0</span></h2>
+      <!-- Shown when the queue is empty -->
+      <div class="empty" id="queueEmpty">
+        <div class="waiting-mascot">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 30 280 193" role="img" aria-label="Alert Girl smiling at her laptop, waiting for the next alert or reminder">
+  <g transform="translate(20,0)">
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    
+    <path d="M76 160 Q76 140 98 136 H142 Q164 140 164 160 L156 240 H84 Z" fill="#f8f6ef"/>
+    <path d="M98 136 L120 158 L142 136" fill="#7cc4ea"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#7cc4ea" stroke-width="8"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#1e1e1e" stroke-width="1.5"/>
+    <path d="M82 214 H158 L157 224 H83 Z" fill="#7cc4ea"/>
+    <!-- Arms reaching down to the keyboard -->
+    <path d="M80 152 Q70 182 96 198" fill="none" stroke-width="22"/>
+    <path d="M80 152 Q70 182 96 198" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <path d="M160 152 Q170 182 144 198" fill="none" stroke-width="22"/>
+    <path d="M160 152 Q170 182 144 198" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+    <!-- Happy face, eyes on the laptop -->
+    <path d="M96 82 Q104 77 112 80" fill="none" stroke-width="3.5"/>
+    <path d="M128 80 Q136 77 144 82" fill="none" stroke-width="3.5"/>
+    
+    <ellipse cx="104" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <ellipse cx="136" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <circle cx="104" cy="99" r="3.5" fill="#1e1e1e" stroke="none"/>
+    <circle cx="136" cy="99" r="3.5" fill="#1e1e1e" stroke="none"/>
+    <path d="M106 114 Q120 128 134 114 Z" fill="#ffffff" stroke-width="3"/>
+    <circle cx="94" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.7"/>
+    <circle cx="146" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.7"/>
+  </g>
+  </g>
+
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Desk -->
+    <rect x="10" y="206" width="260" height="16" rx="4" fill="#c9a46a"/>
+    <!-- Laptop (we see the back of the screen) -->
+    <path d="M86 150 H194 L190 204 H90 Z" fill="#b9c2cc"/>
+    <rect x="76" y="202" width="128" height="8" rx="3" fill="#8d97a3"/>
+    <!-- Green "all good" check on the lid -->
+    <circle cx="140" cy="177" r="15" fill="#34c759" stroke-width="3.5"/>
+    <path d="M132 177 L138 183 L149 171" fill="none" stroke="#ffffff" stroke-width="4"/>
+    <!-- Coffee mug -->
+    <path d="M216 180 H240 V200 Q240 206 234 206 H222 Q216 206 216 200 Z" fill="#7cc4ea"/>
+    <path d="M240 186 Q250 186 250 193 Q250 200 240 200" fill="none" stroke-width="3.5"/>
+  </g>
+  <!-- Steam from the coffee -->
+  <g fill="none" stroke="#9a9a9a" stroke-width="3" stroke-linecap="round">
+    <path d="M224 172 Q220 164 226 158 Q230 152 226 146"/>
+    <path d="M233 172 Q229 164 235 158 Q239 152 235 146"/>
+    <animateTransform attributeName="transform" type="translate" values="0 2;0 -3;0 2" dur="2.5s" repeatCount="indefinite"/>
+  </g>
+</svg>
+        </div>
+        <p><strong>All statuses are green.</strong><br>We'll let you know here as soon as something changes.</p>
+      </div>
+      <!-- The selected event, shown in full at the top of the queue -->
+      <div class="event-card" id="eventCard">
+        <div class="card-header">
+          <span id="cardType"></span>
+          <span id="cardTime"></span>
+        </div>
+        <div class="card-body">
+          <!-- Alert Girl pictures. Each alert can pick one with its "mascot" line. -->
+          <div class="mascot" id="mascot-extinguisher">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 310" role="img" aria-label="Alert Girl holding a fire extinguisher out toward the viewer">
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+
+          <!-- Legs: white with light blue side stripes, dark boots -->
+    <path d="M92 236 H118 V284 H94 Z" fill="#f8f6ef"/>
+    <path d="M122 236 H148 L146 284 H122 Z" fill="#f8f6ef"/>
+    <line x1="97" y1="240" x2="98" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <line x1="143" y1="240" x2="142" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <path d="M90 284 H120 V296 H84 Q84 286 90 284 Z" fill="#2e3a4a"/>
+    <path d="M120 284 H150 Q156 286 156 296 H120 Z" fill="#2e3a4a"/>
+
+          <!-- Body: white jumpsuit -->
+    <path d="M76 160 Q76 140 98 136 H142 Q164 140 164 160 L156 240 H84 Z" fill="#f8f6ef"/>
+          <!-- Light blue collar and center stripe -->
+    <path d="M98 136 L120 158 L142 136" fill="#7cc4ea"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#7cc4ea" stroke-width="8"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#1e1e1e" stroke-width="1.5"/>
+          <!-- Light blue waist stripe -->
+    <path d="M82 214 H158 L157 224 H83 Z" fill="#7cc4ea"/>
+
+          <!-- Head: bob haircut (back) -->
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+          <!-- Neck -->
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+          <!-- Face -->
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+          <!-- Side-swept bangs -->
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+
+          <!-- Eyebrows: left one raised for a knowing look -->
+    <path d="M96 82 Q104 74 112 80" fill="none" stroke-width="3.5"/>
+    <path d="M128 84 Q136 82 144 84" fill="none" stroke-width="3.5"/>
+          <!-- Half-lidded eyes -->
+    <path d="M98 94 Q104 90 110 94" fill="none" stroke-width="3.5"/>
+    <ellipse cx="104" cy="97" rx="3.5" ry="3" fill="#1e1e1e" stroke="none"/>
+    <path d="M130 95 Q136 92 142 95" fill="none" stroke-width="3.5"/>
+    <ellipse cx="136" cy="98" rx="3.5" ry="3" fill="#1e1e1e" stroke="none"/>
+          <!-- Nose -->
+    <path d="M120 100 Q117 108 122 109" fill="none" stroke-width="2.5"/>
+          <!-- Little sideways smirk -->
+    <path d="M108 118 Q122 124 134 114" fill="none" stroke-width="3.5"/>
+    <path d="M134 114 Q137 113 137 110" fill="none" stroke-width="2.5"/>
+          <!-- Rosy cheeks -->
+    <circle cx="94" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.7"/>
+    <circle cx="146" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.7"/>
+
+          <!-- Sleeves reaching forward -->
+    <path d="M80 152 Q70 182 94 196" fill="none" stroke-width="22"/>
+    <path d="M80 152 Q70 182 94 196" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <path d="M160 152 Q170 182 146 196" fill="none" stroke-width="22"/>
+    <path d="M160 152 Q170 182 146 196" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+
+          <!-- Fire extinguisher held out to the viewer -->
+    <path d="M136 158 Q160 150 158 176" fill="none" stroke-width="6"/>
+    <rect x="108" y="148" width="24" height="14" rx="3" fill="#1e1e1e"/>
+    <path d="M114 148 L106 138 H130" fill="none" stroke-width="5"/>
+    <rect x="96" y="160" width="48" height="96" rx="20" fill="#e2312b"/>
+    <path d="M102 176 Q102 166 112 166" fill="none" stroke="#ff8a7a" stroke-width="4"/>
+          <!-- Label with a small flame -->
+    <rect x="104" y="196" width="32" height="32" rx="4" fill="#f8f6ef" stroke-width="3"/>
+    <path d="M120 222 Q110 220 112 210 Q114 214 117 214 Q115 206 122 200 Q122 208 127 210 Q130 220 120 222 Z" fill="#f59a23" stroke-width="2.5"/>
+
+          <!-- Hands gripping the extinguisher, with light blue cuffs -->
+    <rect x="84" y="186" width="14" height="12" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <rect x="142" y="186" width="14" height="12" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <ellipse cx="102" cy="194" rx="10" ry="12" fill="#f6cfae"/>
+    <ellipse cx="138" cy="194" rx="10" ry="12" fill="#f6cfae"/>
+    <path d="M100 190 H108 M100 196 H108" fill="none" stroke-width="2"/>
+    <path d="M132 190 H140 M132 196 H140" fill="none" stroke-width="2"/>
+  </g>
+</svg>
+          </div>
+          <div class="mascot" id="mascot-air">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 310" role="img" aria-label="Alert Girl looking worried at a blinking red air quality display reading 100+">
+        <!-- ===== Hazy, low quality air (behind) ===== -->
+  <g fill="#b8ad97" opacity="0.35">
+    <circle cx="60" cy="60" r="34"/><circle cx="95" cy="44" r="26"/><circle cx="40" cy="96" r="22"/>
+    <circle cx="200" cy="40" r="30"/><circle cx="232" cy="58" r="22"/>
+    <circle cx="190" cy="230" r="30"/><circle cx="222" cy="250" r="22"/><circle cx="40" cy="240" r="28"/>
+    <circle cx="320" cy="230" r="34"/><circle cx="350" cy="205" r="22"/>
+  </g>
+
+        <!-- ===== Wall air quality display ===== -->
+        <!-- Blinking red glow behind the display -->
+  <rect x="236" y="62" width="128" height="96" rx="16" fill="#ff3b30" opacity="0.25">
+    <animate attributeName="opacity" values="0.35;0.05;0.35" dur="1s" repeatCount="indefinite"/>
+  </rect>
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round">
+    <rect x="244" y="70" width="112" height="80" rx="10" fill="#2e3a4a"/>
+    <rect x="254" y="80" width="92" height="60" rx="5" fill="#3a0d0d"/>
+  </g>
+  <text x="300" y="96" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#ff9a92" letter-spacing="2">AQI</text>
+  <text x="300" y="130" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="30" font-weight="900" fill="#ff3b30">100+
+    <animate attributeName="opacity" values="1;0.25;1" dur="1s" repeatCount="indefinite"/>
+  </text>
+        <!-- Blinking warning light on top -->
+  <circle cx="300" cy="64" r="7" fill="#ff3b30" stroke="#1e1e1e" stroke-width="3.5">
+    <animate attributeName="fill" values="#ff3b30;#5a1414;#ff3b30" dur="1s" repeatCount="indefinite"/>
+  </circle>
+        <!-- Alarm lines -->
+  <g stroke="#ff3b30" stroke-width="4" stroke-linecap="round">
+    <line x1="236" y1="70" x2="226" y2="62"/><line x1="364" y1="70" x2="374" y2="62"/>
+    <line x1="232" y1="110" x2="220" y2="110"/><line x1="368" y1="110" x2="380" y2="110"/>
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+  </g>
+
+        <!-- ===== Alert Girl ===== -->
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+          <!-- Legs and boots -->
+    <path d="M92 236 H118 V284 H94 Z" fill="#f8f6ef"/>
+    <path d="M122 236 H148 L146 284 H122 Z" fill="#f8f6ef"/>
+    <line x1="97" y1="240" x2="98" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <line x1="143" y1="240" x2="142" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <path d="M90 284 H120 V296 H84 Q84 286 90 284 Z" fill="#2e3a4a"/>
+    <path d="M120 284 H150 Q156 286 156 296 H120 Z" fill="#2e3a4a"/>
+
+          <!-- Arm hanging at her side (behind body) -->
+    <path d="M80 152 Q70 190 74 218" fill="none" stroke-width="22"/>
+    <path d="M80 152 Q70 190 74 218" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <rect x="66" y="210" width="16" height="10" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <ellipse cx="74" cy="228" rx="9" ry="10" fill="#f6cfae"/>
+
+          <!-- Body: white jumpsuit with light blue stripes -->
+    <path d="M76 160 Q76 140 98 136 H142 Q164 140 164 160 L156 240 H84 Z" fill="#f8f6ef"/>
+    <path d="M98 136 L120 158 L142 136" fill="#7cc4ea"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#7cc4ea" stroke-width="8"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#1e1e1e" stroke-width="1.5"/>
+    <path d="M82 214 H158 L157 224 H83 Z" fill="#7cc4ea"/>
+
+          <!-- Arm with hand pressed to her chest, worried -->
+    <path d="M160 152 Q172 186 136 178" fill="none" stroke-width="22"/>
+    <path d="M160 152 Q172 186 136 178" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <rect x="138" y="170" width="12" height="15" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <ellipse cx="128" cy="176" rx="11" ry="9" fill="#f6cfae"/>
+
+          <!-- Bob haircut (back), neck, face -->
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+
+          <!-- Worried eyebrows (inner ends raised) -->
+    <path d="M94 86 Q102 80 110 78" fill="none" stroke-width="3.5"/>
+    <path d="M130 78 Q138 80 146 86" fill="none" stroke-width="3.5"/>
+          <!-- Wide eyes glancing toward the display -->
+    <ellipse cx="104" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <ellipse cx="136" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <circle cx="107" cy="97" r="3.5" fill="#1e1e1e" stroke="none"/>
+    <circle cx="139" cy="97" r="3.5" fill="#1e1e1e" stroke="none"/>
+          <!-- Nose -->
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+          <!-- Wobbly, uneasy mouth -->
+    <path d="M110 120 Q115 116 120 120 Q125 124 130 120" fill="none" stroke-width="3.5"/>
+          <!-- Sweat drop -->
+    <path d="M160 64 Q166 74 160 78 Q154 74 160 64 Z" fill="#9fd6f5" stroke-width="2.5"/>
+  </g>
+
+        <!-- ===== Hazy air drifting in front of her face ===== -->
+  <g fill="#9c9077" opacity="0.45">
+    <circle cx="150" cy="122" r="7"/><circle cx="162" cy="114" r="5"/><circle cx="172" cy="124" r="4"/>
+    <circle cx="186" cy="110" r="3"/><circle cx="58" cy="140" r="5"/><circle cx="48" cy="128" r="3"/>
+  </g>
+  <g fill="#6f6553" opacity="0.5">
+    <circle cx="200" cy="140" r="2"/><circle cx="214" cy="122" r="2"/><circle cx="182" cy="180" r="2"/>
+    <circle cx="34" cy="170" r="2"/><circle cx="60" cy="186" r="2"/><circle cx="208" cy="200" r="2"/>
+    <circle cx="176" cy="92" r="2"/><circle cx="226" cy="168" r="2"/>
+  </g>
+</svg>
+          </div>
+          <div class="mascot" id="mascot-water">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 320" role="img" aria-label="Alert Girl standing in rising water that is soaking her shoes">
+        <!-- Water behind her -->
+  <path d="M0 268 Q25 260 50 268 T100 268 T150 268 T200 268 T250 268 T300 268 V320 H0 Z" fill="#5fb3e6" opacity="0.55"/>
+  <g transform="translate(30,0)">
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    
+    <path d="M92 236 H118 V284 H94 Z" fill="#f8f6ef"/>
+    <path d="M122 236 H148 L146 284 H122 Z" fill="#f8f6ef"/>
+    <line x1="97" y1="240" x2="98" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <line x1="143" y1="240" x2="142" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <path d="M90 284 H120 V296 H84 Q84 286 90 284 Z" fill="#2e3a4a"/>
+    <path d="M120 284 H150 Q156 286 156 296 H120 Z" fill="#2e3a4a"/>
+    
+    <path d="M80 152 Q56 168 46 192" fill="none" stroke-width="22"/>
+    <path d="M80 152 Q56 168 46 192" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <rect x="36" y="186" width="16" height="10" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <ellipse cx="44" cy="202" rx="9" ry="10" fill="#f6cfae"/>
+    
+    <path d="M160 152 Q184 168 194 192" fill="none" stroke-width="22"/>
+    <path d="M160 152 Q184 168 194 192" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <rect x="188" y="186" width="16" height="10" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <ellipse cx="196" cy="202" rx="9" ry="10" fill="#f6cfae"/>
+    
+    <path d="M76 160 Q76 140 98 136 H142 Q164 140 164 160 L156 240 H84 Z" fill="#f8f6ef"/>
+    <path d="M98 136 L120 158 L142 136" fill="#7cc4ea"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#7cc4ea" stroke-width="8"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#1e1e1e" stroke-width="1.5"/>
+    <path d="M82 214 H158 L157 224 H83 Z" fill="#7cc4ea"/>
+    
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+          <!-- Alarmed eyebrows -->
+    <path d="M94 84 Q102 76 110 78" fill="none" stroke-width="3.5"/>
+    <path d="M130 78 Q138 76 146 84" fill="none" stroke-width="3.5"/>
+    
+    <ellipse cx="104" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <ellipse cx="136" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <circle cx="104" cy="99" r="3.5" fill="#1e1e1e" stroke="none"/>
+    <circle cx="136" cy="99" r="3.5" fill="#1e1e1e" stroke="none"/>
+          <!-- Worried open frown -->
+    <path d="M108 126 Q120 110 132 126 Q120 120 108 126 Z" fill="#7a2b22" stroke-width="3"/>
+          <!-- Sweat drops -->
+    <path d="M162 64 Q168 74 162 78 Q156 74 162 64 Z" fill="#9fd6f5" stroke-width="2.5"/>
+    <path d="M76 70 Q81 78 76 81 Q71 78 76 70 Z" fill="#9fd6f5" stroke-width="2.5"/>
+  </g>
+  </g>
+        <!-- Water in front, covering her boots -->
+  <path d="M0 280 Q25 272 50 280 T100 280 T150 280 T200 280 T250 280 T300 280 V320 H0 Z" fill="#3d9ad6" opacity="0.8">
+    <animate attributeName="d" dur="2s" repeatCount="indefinite"
+      values="M0 280 Q25 272 50 280 T100 280 T150 280 T200 280 T250 280 T300 280 V320 H0 Z;
+              M0 280 Q25 288 50 280 T100 280 T150 280 T200 280 T250 280 T300 280 V320 H0 Z;
+              M0 280 Q25 272 50 280 T100 280 T150 280 T200 280 T250 280 T300 280 V320 H0 Z"/>
+  </path>
+  <path d="M10 280 Q35 272 60 280 T110 280 T160 280 T210 280 T260 280 T300 278" fill="none" stroke="#1e1e1e" stroke-width="3" opacity="0.6"/>
+        <!-- Ripples around her boots -->
+  <g fill="none" stroke="#e6f5ff" stroke-width="3" stroke-linecap="round">
+    <ellipse cx="150" cy="296" rx="52" ry="7"/>
+    <ellipse cx="150" cy="304" rx="76" ry="9" opacity="0.6"/>
+  </g>
+        <!-- Splashes -->
+  <g fill="#7cc8f0" stroke="#1e1e1e" stroke-width="2.5">
+    <path d="M104 270 Q100 258 106 252 Q110 262 104 270 Z"/>
+    <path d="M94 274 Q86 266 88 258 Q96 266 94 274 Z"/>
+    <path d="M196 270 Q200 258 194 252 Q190 262 196 270 Z"/>
+    <path d="M206 274 Q214 266 212 258 Q204 266 206 274 Z"/>
+  </g>
+        <!-- Drips falling from the splash -->
+  <g fill="#7cc8f0">
+    <circle cx="80" cy="250" r="3"/><circle cx="220" cy="248" r="3"/><circle cx="112" cy="244" r="2.5"/><circle cx="188" cy="242" r="2.5"/>
+  </g>
+</svg>
+          </div>
+          <div class="mascot" id="mascot-smoke">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 320" role="img" aria-label="Alert Girl looking up at a ceiling smoke alarm as smoke sets it off">
+        <!-- Ceiling -->
+  <rect x="0" y="0" width="340" height="14" fill="#d9d6cf"/>
+  <line x1="0" y1="14" x2="340" y2="14" stroke="#1e1e1e" stroke-width="3"/>
+
+        <!-- Smoke rising toward the alarm -->
+  <g fill="#9a9a9a">
+    <g opacity="0.55">
+      <circle cx="270" cy="262" r="20"/><circle cx="292" cy="254" r="24"/><circle cx="314" cy="266" r="16"/>
+      <circle cx="282" cy="236" r="18"/><circle cx="304" cy="232" r="14"/><circle cx="252" cy="270" r="12"/>
+      <animate attributeName="opacity" values="0.55;0.35;0.55" dur="3s" repeatCount="indefinite"/>
+    </g>
+    <g opacity="0.5">
+      <circle cx="276" cy="196" r="16"/><circle cx="296" cy="190" r="18"/><circle cx="286" cy="172" r="14"/>
+      <circle cx="306" cy="174" r="11"/><circle cx="264" cy="182" r="10"/><circle cx="300" cy="206" r="10"/>
+      <animateTransform attributeName="transform" type="translate" values="0 6;0 -6;0 6" dur="3s" repeatCount="indefinite"/>
+    </g>
+    <g opacity="0.45">
+      <circle cx="284" cy="132" r="13"/><circle cx="298" cy="120" r="12"/><circle cx="278" cy="112" r="10"/>
+      <circle cx="292" cy="96" r="11"/><circle cx="282" cy="80" r="9"/><circle cx="294" cy="64" r="9"/>
+      <circle cx="286" cy="50" r="7"/><circle cx="270" cy="128" r="8"/>
+      <animateTransform attributeName="transform" type="translate" values="0 4;0 -4;0 4" dur="2.4s" repeatCount="indefinite"/>
+    </g>
+  </g>
+
+        <!-- Smoke alarm on the ceiling -->
+  <g stroke="#1e1e1e" stroke-width="4" stroke-linejoin="round">
+    <path d="M244 14 H316 V24 Q316 34 304 34 H256 Q244 34 244 24 Z" fill="#f4f3ef"/>
+    <line x1="262" y1="26" x2="298" y2="26" stroke-width="2.5"/>
+  </g>
+  <circle cx="306" cy="22" r="4" fill="#ff3b30" stroke="#1e1e1e" stroke-width="2">
+    <animate attributeName="fill" values="#ff3b30;#5a1414;#ff3b30" dur="0.6s" repeatCount="indefinite"/>
+  </circle>
+        <!-- Beeping sound waves -->
+  <g fill="none" stroke="#ff3b30" stroke-width="4" stroke-linecap="round">
+    <path d="M236 22 Q228 32 236 42"/><path d="M226 18 Q214 34 226 50"/>
+    <path d="M324 22 Q332 32 324 42"/><path d="M334 18 Q346 34 334 50"/>
+    <animate attributeName="opacity" values="1;0;1" dur="0.6s" repeatCount="indefinite"/>
+  </g>
+
+        <!-- Alert Girl -->
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    
+    <path d="M92 236 H118 V284 H94 Z" fill="#f8f6ef"/>
+    <path d="M122 236 H148 L146 284 H122 Z" fill="#f8f6ef"/>
+    <line x1="97" y1="240" x2="98" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <line x1="143" y1="240" x2="142" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <path d="M90 284 H120 V296 H84 Q84 286 90 284 Z" fill="#2e3a4a"/>
+    <path d="M120 284 H150 Q156 286 156 296 H120 Z" fill="#2e3a4a"/>
+    
+    <path d="M80 152 Q66 186 70 214" fill="none" stroke-width="22"/>
+    <path d="M80 152 Q66 186 70 214" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <rect x="62" y="206" width="16" height="10" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <ellipse cx="70" cy="224" rx="9" ry="10" fill="#f6cfae"/>
+    
+    <path d="M76 160 Q76 140 98 136 H142 Q164 140 164 160 L156 240 H84 Z" fill="#f8f6ef"/>
+    <path d="M98 136 L120 158 L142 136" fill="#7cc4ea"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#7cc4ea" stroke-width="8"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#1e1e1e" stroke-width="1.5"/>
+    <path d="M82 214 H158 L157 224 H83 Z" fill="#7cc4ea"/>
+          <!-- Arm pointing up at the alarm -->
+    
+    <path d="M160 152 Q186 128 196 98" fill="none" stroke-width="22"/>
+    <path d="M160 152 Q186 128 196 98" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <rect x="188" y="96" width="16" height="10" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <ellipse cx="198" cy="88" rx="9" ry="10" fill="#f6cfae"/>
+    
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+          <!-- Raised, surprised eyebrows -->
+    <path d="M94 80 Q102 72 110 76" fill="none" stroke-width="3.5"/>
+    <path d="M130 76 Q138 72 146 80" fill="none" stroke-width="3.5"/>
+    
+    <ellipse cx="104" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <ellipse cx="136" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <circle cx="106" cy="93" r="3.5" fill="#1e1e1e" stroke="none"/>
+    <circle cx="138" cy="93" r="3.5" fill="#1e1e1e" stroke="none"/>
+          <!-- Surprised "oh!" mouth -->
+    <ellipse cx="120" cy="120" rx="6" ry="7" fill="#7a2b22" stroke-width="3"/>
+  </g>
+</svg>
+          </div>
+          <div class="mascot" id="mascot-filter">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 310" role="img" aria-label="Alert Girl proudly holding up a clean new furnace filter">
+  <g transform="translate(10,0)">
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    
+    <path d="M92 236 H118 V284 H94 Z" fill="#f8f6ef"/>
+    <path d="M122 236 H148 L146 284 H122 Z" fill="#f8f6ef"/>
+    <line x1="97" y1="240" x2="98" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <line x1="143" y1="240" x2="142" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <path d="M90 284 H120 V296 H84 Q84 286 90 284 Z" fill="#2e3a4a"/>
+    <path d="M120 284 H150 Q156 286 156 296 H120 Z" fill="#2e3a4a"/>
+    
+    <path d="M76 160 Q76 140 98 136 H142 Q164 140 164 160 L156 240 H84 Z" fill="#f8f6ef"/>
+    <path d="M98 136 L120 158 L142 136" fill="#7cc4ea"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#7cc4ea" stroke-width="8"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#1e1e1e" stroke-width="1.5"/>
+    <path d="M82 214 H158 L157 224 H83 Z" fill="#7cc4ea"/>
+          <!-- Sleeves reaching forward to hold the filter -->
+    <path d="M80 152 Q66 180 80 196" fill="none" stroke-width="22"/>
+    <path d="M80 152 Q66 180 80 196" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <path d="M160 152 Q174 180 160 196" fill="none" stroke-width="22"/>
+    <path d="M160 152 Q174 180 160 196" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+          <!-- Happy, confident face -->
+    <path d="M96 82 Q104 76 112 80" fill="none" stroke-width="3.5"/>
+    <path d="M128 80 Q136 76 144 82" fill="none" stroke-width="3.5"/>
+    <path d="M98 96 Q104 90 110 96" fill="none" stroke-width="3.5"/>
+    <path d="M130 96 Q136 90 142 96" fill="none" stroke-width="3.5"/>
+    <path d="M106 114 Q120 128 134 114 Z" fill="#ffffff" stroke-width="3"/>
+    <circle cx="94" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.7"/>
+    <circle cx="146" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.7"/>
+
+          <!-- Clean furnace filter: cardboard frame with white pleats -->
+    <rect x="78" y="156" width="84" height="86" rx="3" fill="#c9a46a"/>
+    <rect x="88" y="166" width="64" height="66" fill="#fbfaf5" stroke-width="2.5"/>
+    <line x1="92" y1="166" x2="92" y2="232" stroke="#d6d2c4" stroke-width="2.5"/><line x1="100" y1="166" x2="100" y2="232" stroke="#d6d2c4" stroke-width="2.5"/><line x1="108" y1="166" x2="108" y2="232" stroke="#d6d2c4" stroke-width="2.5"/><line x1="116" y1="166" x2="116" y2="232" stroke="#d6d2c4" stroke-width="2.5"/><line x1="124" y1="166" x2="124" y2="232" stroke="#d6d2c4" stroke-width="2.5"/><line x1="132" y1="166" x2="132" y2="232" stroke="#d6d2c4" stroke-width="2.5"/><line x1="140" y1="166" x2="140" y2="232" stroke="#d6d2c4" stroke-width="2.5"/><line x1="148" y1="166" x2="148" y2="232" stroke="#d6d2c4" stroke-width="2.5"/>
+    <line x1="88" y1="199" x2="152" y2="199" stroke="#9a9a9a" stroke-width="1.5"/>
+    <line x1="120" y1="166" x2="120" y2="232" stroke="#9a9a9a" stroke-width="1.5"/>
+          <!-- Airflow arrow printed on the frame -->
+    <path d="M96 238 H140 M134 234 L140 238 L134 242" fill="none" stroke-width="2"/>
+
+          <!-- Hands gripping the frame, with light blue cuffs -->
+    <rect x="72" y="186" width="12" height="14" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <rect x="156" y="186" width="12" height="14" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <ellipse cx="82" cy="194" rx="9" ry="11" fill="#f6cfae"/>
+    <ellipse cx="158" cy="194" rx="9" ry="11" fill="#f6cfae"/>
+  </g>
+  </g>
+        <!-- Sparkles showing the filter is fresh and clean -->
+  <g fill="#7cc4ea" stroke="#1e1e1e" stroke-width="2" stroke-linejoin="round">
+    <path d="M44 170 L48 180 L58 184 L48 188 L44 198 L40 188 L30 184 L40 180 Z">
+      <animate attributeName="opacity" values="1;0.2;1" dur="1.6s" repeatCount="indefinite"/>
+    </path>
+    <path d="M216 150 L219 158 L227 161 L219 164 L216 172 L213 164 L205 161 L213 158 Z">
+      <animate attributeName="opacity" values="0.2;1;0.2" dur="1.6s" repeatCount="indefinite"/>
+    </path>
+    <path d="M222 220 L225 227 L232 230 L225 233 L222 240 L219 233 L212 230 L219 227 Z" fill="#f5c400">
+      <animate attributeName="opacity" values="1;0.3;1" dur="1.2s" repeatCount="indefinite"/>
+    </path>
+  </g>
+</svg>
+          </div>
+          <div class="mascot" id="mascot-install">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 342" role="img" aria-label="Alert Girl on a step stool using both hands to install a new smoke alarm on the ceiling">
+        <!-- Ceiling -->
+  <rect x="0" y="0" width="280" height="24" fill="#d9d6cf"/>
+  <line x1="0" y1="24" x2="280" y2="24" stroke="#1e1e1e" stroke-width="3"/>
+
+        <!-- Step stool -->
+  <g stroke="#1e1e1e" stroke-width="4" stroke-linejoin="round">
+    <rect x="88" y="296" width="104" height="12" rx="3" fill="#e8b04a"/>
+    <path d="M98 308 L92 338 M182 308 L188 338" fill="none" stroke-width="7"/>
+    <path d="M98 308 L92 338 M182 308 L188 338" fill="none" stroke="#e8b04a" stroke-width="2"/>
+    <line x1="96" y1="324" x2="184" y2="324" stroke-width="4"/>
+  </g>
+
+  <g transform="translate(20,0)">
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    
+    <path d="M92 236 H118 V284 H94 Z" fill="#f8f6ef"/>
+    <path d="M122 236 H148 L146 284 H122 Z" fill="#f8f6ef"/>
+    <line x1="97" y1="240" x2="98" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <line x1="143" y1="240" x2="142" y2="282" stroke="#7cc4ea" stroke-width="5"/>
+    <path d="M90 284 H120 V296 H84 Q84 286 90 284 Z" fill="#2e3a4a"/>
+    <path d="M120 284 H150 Q156 286 156 296 H120 Z" fill="#2e3a4a"/>
+    
+    <path d="M76 160 Q76 140 98 136 H142 Q164 140 164 160 L156 240 H84 Z" fill="#f8f6ef"/>
+    <path d="M98 136 L120 158 L142 136" fill="#7cc4ea"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#7cc4ea" stroke-width="8"/>
+    <line x1="120" y1="160" x2="120" y2="238" stroke="#1e1e1e" stroke-width="1.5"/>
+    <path d="M82 214 H158 L157 224 H83 Z" fill="#7cc4ea"/>
+    
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+          <!-- Determined smirk: focused brows, eyes on the job, confident half smile -->
+    <path d="M95 81 Q104 79 112 82" fill="none" stroke-width="3.5"/>
+    <path d="M128 80 Q136 75 145 78" fill="none" stroke-width="3.5"/>
+    
+    <ellipse cx="104" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <ellipse cx="136" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <circle cx="104" cy="93" r="3.5" fill="#1e1e1e" stroke="none"/>
+    <circle cx="136" cy="93" r="3.5" fill="#1e1e1e" stroke="none"/>
+    <path d="M97 91 Q104 88 111 91" fill="none" stroke-width="3"/>
+    <path d="M129 91 Q136 88 143 91" fill="none" stroke-width="3"/>
+    <path d="M108 118 Q122 124 134 113" fill="none" stroke-width="3.5"/>
+    <path d="M134 113 Q137 112 137 109" fill="none" stroke-width="2.5"/>
+    <circle cx="94" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.7"/>
+    <circle cx="146" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.7"/>
+          <!-- Sweat drop and effort lines -->
+    <path d="M150 58 Q156 68 150 72 Q144 68 150 58 Z" fill="#9fd6f5" stroke-width="2.5"/>
+    <path d="M14 96 L26 99 M14 110 L26 109" fill="none" stroke-width="3"/>
+    <path d="M226 96 L214 99 M226 110 L214 109" fill="none" stroke-width="3"/>
+
+          <!-- Both arms stretched up, holding the alarm against the ceiling -->
+    
+    <path d="M80 152 Q12 104 88 52" fill="none" stroke-width="22"/>
+    <path d="M80 152 Q12 104 88 52" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <rect x="82" y="50" width="16" height="10" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <ellipse cx="90" cy="44" rx="9" ry="10" fill="#f6cfae"/>
+    
+    <path d="M160 152 Q228 104 152 52" fill="none" stroke-width="22"/>
+    <path d="M160 152 Q228 104 152 52" fill="none" stroke="#f8f6ef" stroke-width="13"/>
+    <rect x="142" y="50" width="16" height="10" rx="2" fill="#7cc4ea" stroke-width="3.5"/>
+    <ellipse cx="150" cy="44" rx="9" ry="10" fill="#f6cfae"/>
+  </g>
+  </g>
+
+        <!-- New smoke alarm going up -->
+  <g stroke="#1e1e1e" stroke-width="4" stroke-linejoin="round">
+    <path d="M108 24 H172 V30 Q172 40 162 40 H118 Q108 40 108 30 Z" fill="#ffffff"/>
+    <line x1="124" y1="32" x2="150" y2="32" stroke-width="2.5"/>
+  </g>
+        <!-- Green light: working! -->
+  <circle cx="160" cy="31" r="3.5" fill="#34c759" stroke="#1e1e1e" stroke-width="2">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+        <!-- "Click" lines showing it snapping into place -->
+  <g stroke="#1e1e1e" stroke-width="3" stroke-linecap="round">
+    <line x1="96" y1="30" x2="86" y2="34"/><line x1="184" y1="30" x2="194" y2="34"/>
+    <animate attributeName="opacity" values="1;0.2;1" dur="1.5s" repeatCount="indefinite"/>
+  </g>
+</svg>
+          </div>
+          <h3 id="cardTitle"></h3>
+          <p id="cardMessage"></p>
+          <div id="cardButtons"></div>
+        </div>
+      </div>
+      <div id="queueGroups"></div>
+
+    </section>
+  </div>
+
+  <!-- The toaster message (starts hidden) -->
+  <div class="toast" id="toast"></div>
+
+  <!-- The fake photo upload window (starts hidden).
+       This is pretend: no real files are read from your computer. -->
+  <div class="overlay" id="uploadOverlay">
+    <div class="upload-window">
+      <h3>Upload a photo</h3>
+      <p id="uploadPrompt"></p>
+
+      <div class="fake-folder">
+        <div class="folder-name">📁 Pictures</div>
+        <div class="fake-file" id="demoFile" onclick="selectDemoPhoto()">
+          <div class="file-icon"></div>
+          <span>demo photo.jpg</span>
+        </div>
+      </div>
+
+      <button class="primary" id="uploadBtn" onclick="uploadPhoto()" disabled>Upload</button>
+      <button class="secondary" onclick="cancelUpload()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ============ SCRIPT: what things do ============ -->
+  <script>
+    // ---------- THE LIST OF ALERTS ----------
+    // To add a new alert, copy one of these blocks and change the words.
+    // Each alert has:
+    //   type      - "reminder" (blue) or "alert" (red)
+    //   name      - what shows in the lists, and in the snooze message
+    //   title, message, and a list of buttons.
+    // Each button has a label, a style ("primary" = main button, "secondary" = gray),
+    // and an action (what happens when it's clicked).
+    const alerts = [
+      {
+        type: "reminder",
+        name: "Replace Fire Extinguisher",
+        title: "Reminder",
+        message: "Fire Extinguisher in the garage needs to be replaced.",
+        mascot: "extinguisher",   // show this Alert Girl picture
+        // Messages used by the "Mark as replaced" and "Order Replacement" buttons
+        uploadPrompt: "Please upload a photo of the new extinguisher with the receipt clearly visible.",
+        replacedMessage: "Extinguisher marked as replaced.",
+        orderMessage: "A replacement extinguisher matching the same specifications has been ordered and will be shipped to you.",
+        buttons: [
+          { label: "Mark as replaced",  style: "primary",   action: "replaced" },
+          { label: "Order Replacement", style: "secondary", action: "orderReplacement" },
+          { label: "Dismiss",           style: "secondary", action: "dismiss" }
+        ]
+      },
+      {
+        type: "reminder",
+        name: "Replace Furnace Filter",
+        title: "Reminder",
+        message: "It is time to replace your furnace filters. " +
+                 "This keeps your air quality high and helps to prevent fires.",
+        mascot: "filter",   // show this Alert Girl picture
+        uploadPrompt: "Please upload a photo of the new furnace filter with the receipt clearly visible.",
+        replacedMessage: "Furnace filter marked as replaced.",
+        orderMessage: "Replacement furnace filters matching the same specifications have been ordered and will be shipped to you.",
+        buttons: [
+          { label: "Mark as replaced",  style: "primary",   action: "replaced" },
+          { label: "Order Replacement", style: "secondary", action: "orderReplacement" },
+          { label: "Call for Service",  style: "secondary", action: "callService" },
+          { label: "Dismiss",           style: "secondary", action: "dismiss" }
+        ]
+      },
+      {
+        type: "reminder",
+        name: "Replace Smoke Alarm",
+        title: "Reminder",
+        message: "Your smoke alarm is due to be replaced. " +
+                 "Smoke alarms should be replaced every 10 years so they work when you need them.",
+        mascot: "install",   // show this Alert Girl picture
+        uploadPrompt: "Please upload a photo of the new smoke alarm with the receipt clearly visible.",
+        replacedMessage: "Smoke alarm marked as replaced.",
+        orderMessage: "A replacement smoke alarm matching the same specifications has been ordered and will be shipped to you.",
+        buttons: [
+          { label: "Mark as replaced",  style: "primary",   action: "replaced" },
+          { label: "Order Replacement", style: "secondary", action: "orderReplacement" },
+          { label: "Dismiss",           style: "secondary", action: "dismiss" }
+        ]
+      },
+      {
+        type: "alert",
+        name: "Smoke alarm",
+        mascot: "smoke",   // show this Alert Girl picture
+        title: "ALERT",
+        message: "Smoke Alarm triggered, possible fire.",
+        buttons: [
+          { label: "Snooze alarm for 15 minutes", style: "primary",   action: "snooze" },
+          { label: "Dismiss",                     style: "secondary", action: "dismiss" }
+        ]
+      },
+      {
+        type: "alert",
+        name: "Water level",
+        mascot: "water",   // show this Alert Girl picture
+        title: "Water Level High in Crock",
+        message: "The water level in your crock is high indicating the potential for flooding. " +
+                 "Please check your sump-pump is working properly. " +
+                 "You may want to move items which are vulnerable to water damage away from the crock.",
+        buttons: [
+          { label: "Call Plumber",          style: "primary",   action: "callPlumber" },
+          { label: "Dismiss",               style: "secondary", action: "dismiss" },
+          { label: "Snooze for 15 minutes", style: "secondary", action: "snooze" }
+        ]
+      },
+      {
+        type: "alert",
+        name: "Air quality",
+        title: "Air Quality Low",
+        mascot: "air",   // show this Alert Girl picture
+        message: "Air quality is poor AQI over 100. " +
+                 "Your air purifiers are not currently able to keep your air at ideal levels. " +
+                 "You may wish to check to ensure the filters do not need to be changed.",
+        buttons: [
+          { label: "Dismiss",               style: "secondary", action: "dismiss" },
+          { label: "Snooze for 15 minutes", style: "secondary", action: "snooze" },
+          { label: "Maximize Air Quality",  style: "primary",   action: "maximizeAir" }
+        ]
+      }
+    ];
+
+    // ---------- BUILD THE TRIGGER LISTS ----------
+    // For each alert above, add a row with its name and a "Trigger" button.
+    alerts.forEach(function (alertInfo) {
+      const listId = alertInfo.type === "reminder" ? "reminderTriggers" : "alertTriggers";
+      const row = document.createElement("li");
+
+      const label = document.createElement("span");
+      label.textContent = alertInfo.name;
+
+      const button = document.createElement("button");
+      button.className = "trigger-btn";
+      button.textContent = "Trigger";
+      button.onclick = function () { addEvent(alertInfo); };
+
+      row.appendChild(label);
+      row.appendChild(button);
+      document.getElementById(listId).appendChild(row);
+    });
+
+    // ---------- THE QUEUE ----------
+    // Every triggered event goes into this list. Each entry remembers
+    // which alert it is, when it happened, and a unique id number.
+    let queue = [];
+    let nextId = 1;
+    let selectedId = null;   // the id of the event shown in full
+
+    // Add a new event to the queue.
+    function addEvent(alertInfo) {
+      const entry = { id: nextId, info: alertInfo, time: new Date() };
+      nextId = nextId + 1;
+      queue.push(entry);
+
+      // Decide whether to switch the full view to the top of the queue:
+      //  - if nothing is being shown yet, or
+      //  - if a new ALERT arrives while a reminder is being shown (alerts come first).
+      const shown = findEvent(selectedId);
+      if (!shown || (alertInfo.type === "alert" && shown.info.type === "reminder")) {
+        selectedId = sortedQueue()[0].id;
+      }
+      render();
+    }
+
+    // Remove an event from the queue (after a button is clicked).
+    function removeEvent(id) {
+      queue = queue.filter(function (e) { return e.id !== id; });
+      if (selectedId === id) {
+        // Show whatever is now at the top of the queue (or nothing).
+        const top = sortedQueue()[0];
+        selectedId = top ? top.id : null;
+      }
+      render();
+    }
+
+    function findEvent(id) {
+      return queue.find(function (e) { return e.id === id; });
+    }
+
+    // The queue in display order: all alerts first (oldest first),
+    // then all reminders (oldest first). Lower id = triggered earlier.
+    function sortedQueue() {
+      const alertsFirst = queue.filter(function (e) { return e.info.type === "alert"; });
+      const remindersNext = queue.filter(function (e) { return e.info.type === "reminder"; });
+      const byOldest = function (x, y) { return x.id - y.id; };
+      return alertsFirst.sort(byOldest).concat(remindersNext.sort(byOldest));
+    }
+
+    // Turns a time into something like "2:05:31 PM".
+    function formatTime(date) {
+      return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
+    }
+
+    // ---------- DRAW THE QUEUE ON THE PAGE ----------
+    function render() {
+      const groups = document.getElementById("queueGroups");
+      groups.innerHTML = "";
+      document.getElementById("queueCount").textContent = queue.length;
+      document.getElementById("queueEmpty").style.display = queue.length ? "none" : "block";
+
+      const sorted = sortedQueue();
+      const alertEvents = sorted.filter(function (e) { return e.info.type === "alert"; });
+      const reminderEvents = sorted.filter(function (e) { return e.info.type === "reminder"; });
+      drawGroup(groups, "alert", "Alerts", alertEvents);
+      drawGroup(groups, "reminder", "Reminders", reminderEvents);
+
+      showEvent(findEvent(selectedId));
+    }
+
+    // Draws one group (Alerts or Reminders) with a heading and its rows.
+    function drawGroup(container, type, heading, events) {
+      if (events.length === 0) return;
+
+      const title = document.createElement("div");
+      title.className = "group-heading " + type;
+      title.textContent = heading + " (" + events.length + ")";
+      container.appendChild(title);
+
+      const list = document.createElement("ul");
+      list.className = "queue-list";
+      events.forEach(function (entry) {
+        const row = document.createElement("li");
+        row.className = "queue-item " + type + (entry.id === selectedId ? " selected" : "");
+        row.onclick = function () { selectedId = entry.id; render(); };
+
+        const badge = document.createElement("span");
+        badge.className = "badge " + type;
+        badge.textContent = type === "alert" ? "ALERT" : "REMINDER";
+
+        const name = document.createElement("span");
+        name.className = "name";
+        name.textContent = entry.info.name;
+
+        const time = document.createElement("span");
+        time.className = "time";
+        time.textContent = formatTime(entry.time);
+
+        row.appendChild(badge);
+        row.appendChild(name);
+        row.appendChild(time);
+        list.appendChild(row);
+      });
+      container.appendChild(list);
+    }
+
+    // ---------- SHOW ONE EVENT IN FULL ----------
+    function showEvent(entry) {
+      const card = document.getElementById("eventCard");
+      if (!entry) {
+        card.className = "event-card";   // hidden
+        return;
+      }
+      const info = entry.info;
+      card.className = "event-card show " + info.type;
+
+      document.getElementById("cardType").textContent = info.type === "alert" ? "ALERT" : "REMINDER";
+      document.getElementById("cardTime").textContent = formatTime(entry.time);
+      document.getElementById("cardTitle").textContent = info.title;
+      document.getElementById("cardMessage").textContent = info.message;
+
+      // Hide all Alert Girl pictures, then show the one this event asks for (if any)
+      document.querySelectorAll(".mascot").forEach(function (m) {
+        m.classList.remove("show");
+      });
+      if (info.mascot) {
+        document.getElementById("mascot-" + info.mascot).classList.add("show");
+      }
+
+      // Remove any old buttons, then add this event's buttons.
+      const buttonArea = document.getElementById("cardButtons");
+      buttonArea.innerHTML = "";
+      info.buttons.forEach(function (b) {
+        const button = document.createElement("button");
+        button.className = b.style;
+        button.textContent = b.label;
+        button.onclick = function () { handleAction(b.action, entry); };
+        buttonArea.appendChild(button);
+      });
+    }
+
+    // ---------- TOASTER MESSAGE ----------
+    // Shows a small message at the top of the screen for a number of seconds.
+    let toastTimer;
+    function showToast(text, seconds) {
+      const toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);  // if a toast is already showing, restart its timer
+      toastTimer = setTimeout(function () {
+        toast.classList.remove("show");
+      }, seconds * 1000);
+    }
+
+    // ---------- WHAT EACH BUTTON DOES ----------
+    const SNOOZE_MINUTES = 15;
+
+    function handleAction(action, entry) {
+      const info = entry.info;
+
+      // "Mark as replaced" keeps the event in the queue until the photo is uploaded.
+      if (action === "replaced") {
+        openUpload(entry);
+        return;
+      }
+
+      // Every other button finishes this event and takes it out of the queue.
+      removeEvent(entry.id);
+
+      if (action === "callPlumber") {
+        showToast("Contacting a local plumber now. Updates will be sent to your phone.", 10);
+      }
+      else if (action === "snooze") {
+        // e.g. "Smoke alarm alerts paused for 15 minutes"
+        showToast(info.name + " alerts paused for " + SNOOZE_MINUTES + " minutes", 5);
+        // Put the same alert back in the queue after the snooze time.
+        // minutes x 60 seconds x 1000 milliseconds
+        setTimeout(function () { addEvent(info); }, SNOOZE_MINUTES * 60 * 1000);
+      }
+      else if (action === "maximizeAir") {
+        showToast("All system fans set to maximum and air quality alerts paused for 1 hour.", 10);
+        // Put the alert back after 1 hour (60 minutes x 60 seconds x 1000 milliseconds).
+        setTimeout(function () { addEvent(info); }, 60 * 60 * 1000);
+      }
+      else if (action === "orderReplacement") {
+        showToast(info.orderMessage, 10);
+      }
+      else if (action === "callService") {
+        showToast("Contacting a local service technician now. Updates will be sent to your phone.", 10);
+      }
+      // "dismiss" needs nothing extra: the event is already out of the queue.
+    }
+
+    // ---------- FAKE PHOTO UPLOAD ----------
+    // For the demo, this pretends to be a file picker with one file in it.
+    let uploadFor = null;  // remembers which queued event opened the upload window
+
+    function openUpload(entry) {
+      uploadFor = entry;
+      document.getElementById("uploadPrompt").textContent = entry.info.uploadPrompt;
+      document.getElementById("demoFile").classList.remove("selected");
+      document.getElementById("uploadBtn").disabled = true;
+      document.getElementById("uploadOverlay").classList.add("show");
+    }
+
+    // Clicking the file highlights it and turns on the Upload button.
+    function selectDemoPhoto() {
+      document.getElementById("demoFile").classList.add("selected");
+      document.getElementById("uploadBtn").disabled = false;
+    }
+
+    // Uploading finishes the reminder and removes it from the queue.
+    function uploadPhoto() {
+      document.getElementById("uploadOverlay").classList.remove("show");
+      removeEvent(uploadFor.id);
+      showToast(uploadFor.info.replacedMessage, 5);
+    }
+
+    // Cancel just closes the window. The reminder stays in the queue.
+    function cancelUpload() {
+      document.getElementById("uploadOverlay").classList.remove("show");
+    }
+  </script>
+
+</body>
+</html>
