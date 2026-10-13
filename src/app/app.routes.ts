@@ -3,6 +3,7 @@ import { Weather } from './weather/weather';
 import { AirQuality } from './air-quality/air-quality';
 
 export const routes: Routes = [
+  { path: 'calendar', loadComponent: () => import('./calendar/calendar-page').then(m => m.CalendarPage) },
   { path: '', pathMatch: 'full', redirectTo: 'weather' },
   { path: 'weather', component: Weather },
   { path: 'air-quality', component: AirQuality },

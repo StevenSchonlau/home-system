@@ -17,6 +17,7 @@
       <button type="button" class="btn" (click)="fileInput.click()">Import</button>
       <input #fileInput type="file" accept="application/json,.json" hidden (change)="importConfig($event)" />
       <a class="btn btn-primary" routerLink="/dashboard/create">+ Add tile</a>
+      <a class="btn" routerLink="/calendar">Open calendar</a>
     </div>
   </div>
 
@@ -26,6 +27,8 @@
   @if (sensorData.error()) {
     <p class="error" role="alert">{{ sensorData.error() }}</p>
   }
+
+  <app-calendar-widget class="calendar-widget" />
 
   @if (configService.config().tiles.length === 0) {
     <p class="empty">No tiles yet. Use <strong>+ Add tile</strong> or <strong>Import</strong> to get started.</p>

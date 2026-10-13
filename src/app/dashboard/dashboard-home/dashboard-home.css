@@ -31,6 +31,12 @@ h1 {
   color: var(--text-muted);
 }
 
+.calendar-widget {
+  display: block;
+  max-width: 30rem;
+  margin-bottom: 1.5rem;
+}
+
 .tile-link {
   display: block;
   height: 100%;

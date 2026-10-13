@@ -1,6 +1,7 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CalendarWidget } from '../../calendar/calendar-widget';
 import { SensorDataService } from '../../sensor-data.service';
 import { DashboardConfigService } from '../dashboard-config.service';
 import { DashboardConfig } from '../dashboard.models';
@@ -10,7 +11,7 @@ import { StateEntries } from '../tile-content/state-entries';
 import { TimeRangePicker } from '../time-range-picker/time-range-picker';
 
 @Component({
-  imports: [CdkDropList, CdkDrag, RouterLink, DashboardTile, StateEntries, SensorChart, TimeRangePicker],
+  imports: [CdkDropList, CdkDrag, RouterLink, DashboardTile, StateEntries, SensorChart, TimeRangePicker, CalendarWidget],
   selector: 'app-dashboard-home',
   styleUrl: './dashboard-home.css',
   templateUrl: './dashboard-home.html',

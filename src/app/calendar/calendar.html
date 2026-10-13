@@ -1,0 +1,111 @@
+<section class="calendar" [class.compact]="compact()" aria-label="Calendar">
+  <header>
+    <div>
+      <p class="eyebrow">YOUR SCHEDULE</p>
+      <h2>{{ compact() ? 'Coming up' : 'Calendar' }}</h2>
+    </div>
+    <div class="filters" aria-label="Calendar period">
+      @for (option of views; track option) {
+        <button type="button" [attr.aria-pressed]="view() === option" (click)="changeView(option)">
+          {{ option }}
+        </button>
+      }
+    </div>
+  </header>
+  <div class="navigation">
+    <h3 aria-live="polite">{{ label() }}</h3>
+    <div>
+      <button type="button" aria-label="Previous period" (click)="move(-1)">‹</button
+      ><button type="button" (click)="today()">Today</button
+      ><button type="button" aria-label="Next period" (click)="move(1)">›</button>
+    </div>
+  </div>
+  @if (!compact() && view() === 'month') {
+    <div class="month">
+      @for (day of weekdays; track day) {
+        <div class="weekday">{{ day }}</div>
+      }
+      @for (day of days(); track day.date.getTime()) {
+        <button
+          type="button"
+          class="day"
+          [class.muted]="!day.inMonth"
+          [class.today]="isToday(day.date)"
+          [class.selected]="sameDay(day.date, selectedDay())"
+          [attr.aria-pressed]="sameDay(day.date, selectedDay())"
+          [attr.aria-label]="(day.date | date: 'fullDate') + ', ' + day.items.length + ' items'"
+          (click)="selectDay(day.date)"
+        >
+          <span class="number">{{ day.date.getDate() }}</span>
+          @for (item of day.items.slice(0, 2); track item.id) {
+            <span class="preview" [class.done]="item.completed">{{ item.title }}</span>
+          }
+          @if (day.items.length > 2) {
+            <span class="more">+{{ day.items.length - 2 }} more</span>
+          }
+        </button>
+      }
+    </div>
+    <h3 class="agenda-heading">{{ selectedDay() | date: 'EEEE, MMMM d' }}</h3>
+  }
+  <div class="agenda" aria-live="polite">
+    @for (item of agenda(); track item.id) {
+      <button type="button" class="item" (click)="selectItem(item)" [class.done]="item.completed">
+        <span class="date"
+          ><strong>{{ asDate(item.start) | date: 'MMM d' }}</strong
+          ><span>{{
+            item.allDay || item.start.length === 10
+              ? 'All day'
+              : (asDate(item.start) | date: 'shortTime')
+          }}</span></span
+        >
+        <span class="item-body"
+          ><strong>{{ item.title }}</strong
+          ><span
+            >{{ item.kind || 'event' }}{{ item.completed ? ' · Completed' : ''
+            }}{{ item.location ? ' · ' + item.location : '' }}</span
+          ></span
+        ><span aria-hidden="true">›</span>
+      </button>
+    } @empty {
+      <div class="empty">
+        <strong>A little breathing room</strong>
+        <p>No scheduled items for this {{ !compact() && view() === 'month' ? 'day' : view() }}.</p>
+      </div>
+    }
+  </div>
+  @if (detail(); as item) {
+    <aside class="detail" aria-label="Selected item details">
+      <button
+        type="button"
+        class="close"
+        aria-label="Close item details"
+        (click)="detail.set(null)"
+      >
+        ×
+      </button>
+      <h3>{{ item.title }}</h3>
+      <p>
+        {{
+          asDate(item.start)
+            | date: (item.allDay || item.start.length === 10 ? 'fullDate' : 'medium')
+        }}
+      </p>
+      @if (item.end) {
+        <p>
+          Until
+          {{
+            asDate(item.end) | date: (item.allDay || item.end.length === 10 ? 'fullDate' : 'medium')
+          }}
+          (exclusive)
+        </p>
+      }
+      @if (item.description) {
+        <p>{{ item.description }}</p>
+      }
+      @if (item.location) {
+        <p>{{ item.location }}</p>
+      }
+    </aside>
+  }
+</section>
