@@ -1,0 +1,490 @@
+/* Styles from demos/alert-demo.html (the trigger-list styles moved to the Admin Triggers page).
+   This page uses Shadow DOM, so these rules (and the
+   rows the demo script builds at runtime) are isolated from the rest of the app.
+   Dropped as duplicates of the app: the page's body font, background, text color, margin and
+   padding (the app's body and <main> provide them). Light-mode colors are unchanged; the
+   variables below add a dark version, switched by the app's theme toggle (:host(.dark)). */
+:host {
+  display: block;
+
+  /* Alerts are RED, reminders are BLUE. */
+  --alert: #d93a3f;
+  --alert-light: #fdecec;
+  --reminder: #2f78c9;
+  --reminder-light: #e8f1fc;
+
+  /* Surfaces and text: the app's theme tokens. */
+  --card: var(--surface);
+  --sunken: var(--bg);
+  --ink: var(--text);
+
+  /* Page-specific greys and tints (light values from the original page). */
+  --ink-2: #444;
+  --ink-3: #666;
+  --ink-4: #888;
+  --line: #eee;
+  --line-2: #e5e5e5;
+  --line-3: #ddd;
+  --line-4: #ccc;
+  --dark-button: #333;
+  --brand: #2f3b4c;
+  --brand-hover: #1f2835;
+  --toast: #222;
+  --secondary: #e8e8e8;
+  --unavailable: #f2f2f2;
+  --unavailable-ink: #aaa;
+  --open: #eef6ee;
+  --open-line: #9c9;
+  --booked: #f0f0f0;
+  --hover: #f6f6f6;
+  --file-selected: #dbe9ff;
+  --issue: #a64b00;
+  --issue-hover: #fff4ea;
+  --good: #1f9d48;
+  --card-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+
+  /* Insurance grade circles: background, text, border */
+  --grade-a: #e3f5e9;
+  --grade-a-ink: #1e7a43;
+  --grade-a-line: #2e9e5b;
+  --grade-b: #f1f7dc;
+  --grade-b-ink: #5d7a12;
+  --grade-b-line: #9bbf3a;
+  --grade-c: #fdf6d8;
+  --grade-c-ink: #8a6d00;
+  --grade-c-line: #e0b020;
+  --grade-d: #fdebd9;
+  --grade-d-ink: #a64b00;
+  --grade-d-line: #e8812a;
+}
+
+:host(.dark) {
+  --alert-light: #3b1f22;
+  --reminder-light: #1a2c42;
+
+  --ink-2: #b7c3cc;
+  --ink-3: #93a3ae;
+  --ink-4: #7d8b95;
+  --line: #2b3640;
+  --line-2: #2b3640;
+  --line-3: #3a4752;
+  --line-4: #3a4752;
+  --dark-button: #3e4d5a;
+  --brand: #3a4b5f;
+  --brand-hover: #465a70;
+  --toast: #33414d;
+  --secondary: #2c3843;
+  --unavailable: #1f272e;
+  --unavailable-ink: #5d6a74;
+  --open: #1d2f22;
+  --open-line: #3f7a4c;
+  --booked: #1f272e;
+  --hover: #212b33;
+  --file-selected: #1a2c42;
+  --issue: #f5a35c;
+  --issue-hover: #3a2a1c;
+  --good: #5cc26a;
+  --card-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+
+  --grade-a: #16301f;
+  --grade-a-ink: #6fd08f;
+  --grade-b: #26300f;
+  --grade-b-ink: #b5d65a;
+  --grade-c: #332a0a;
+  --grade-c-ink: #f0c94a;
+  --grade-d: #3a2410;
+  --grade-d-ink: #f5a35c;
+}
+
+h1 { margin: 0 0 6px; }
+button {
+  font-size: 15px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 4px 4px 4px 0;
+}
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ----- Insurance score card ----- */
+/* Two columns: scores on the left, buttons + queue on the right.
+   On narrower screens they stack. */
+.page {
+  display: grid;
+  grid-template-columns: minmax(0, 820px) minmax(320px, 1fr);
+  gap: 24px;
+  max-width: 1240px;
+  align-items: start;
+}
+@media (max-width: 1000px) {
+  .page { grid-template-columns: 1fr; }
+}
+.left-col, .right-col { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.score-cards { display: flex; flex-direction: column; gap: 16px; }
+.score-card {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 18px;
+  box-sizing: border-box;
+  box-shadow: var(--card-shadow);
+}
+.grade {
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 5px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  font-weight: 800;
+  transition: background 0.4s, color 0.4s, border-color 0.4s;
+}
+/* Gentle grade colors: green for A, yellow-green for B, yellow for C, orange for D */
+.grade.A { background: var(--grade-a); color: var(--grade-a-ink); border-color: var(--grade-a-line); }
+.grade.B { background: var(--grade-b); color: var(--grade-b-ink); border-color: var(--grade-b-line); }
+.grade.C { background: var(--grade-c); color: var(--grade-c-ink); border-color: var(--grade-c-line); }
+.grade.D { background: var(--grade-d); color: var(--grade-d-ink); border-color: var(--grade-d-line); }
+.score-details { flex: 0 1 560px; min-width: 260px; }
+.score-details h2 { margin: 0 0 4px; font-size: 20px; }
+.score-summary { margin: 0 0 10px; color: var(--ink-2); }
+.cost-table { border-collapse: collapse; width: 100%; max-width: 520px; }
+.cost-table td { padding: 5px 0; border-bottom: 1px solid var(--line); }
+.cost-table td:last-child { text-align: right; white-space: nowrap; padding-left: 12px; }
+.cost-table .issue td { color: var(--issue); font-size: 14px; padding-left: 16px; }
+.cost-table .issue td:last-child { padding-left: 12px; }
+.cost-table .issue { cursor: pointer; }
+.cost-table .issue:hover td { background: var(--issue-hover); text-decoration: underline; }
+.cost-table .total td { font-weight: 800; border-bottom: none; padding-top: 8px; }
+.score-note { margin: 8px 0 0; font-size: 12px; color: var(--ink-4); }
+.score-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.score-mascot { display: none; }
+.score-mascot.show { display: block; }
+.score-mascot svg { width: 120px; height: auto; display: block; }
+
+/* Buttons on the right side of the score card */
+/* Company buttons, centered at the top of the right column */
+.score-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.action-btn {
+  background: var(--brand);
+  color: white;
+  width: 240px;
+  margin: 0;
+  padding: 12px 16px;
+}
+.action-btn:hover { background: var(--brand-hover); }
+
+/* ----- Pretend chatbot panel ----- */
+.chat-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 360px;
+  max-width: 100%;
+  background: var(--card);
+  box-shadow: -8px 0 24px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(105%);   /* hidden off the right edge */
+  transition: transform 0.3s ease;
+  z-index: 20;
+}
+.chat-panel.open { transform: translateX(0); }
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--brand);
+  color: white;
+  font-weight: 700;
+}
+.chat-close { background: transparent; color: white; font-size: 18px; padding: 4px 8px; margin: 0; }
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--sunken);
+}
+.msg {
+  max-width: 85%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.msg.bot  { background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.msg.user { background: #2f78c9; color: white; margin-left: auto; }
+.chat-input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line-2); }
+.chat-input input {
+  flex: 1;
+  font-size: 15px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-4);
+  border-radius: 8px;
+  min-width: 0;
+  background: var(--card);
+  color: var(--ink);
+}
+.send-btn { background: #2f78c9; color: white; margin: 0; }
+
+/* ----- Pretend security feed panel ----- */
+.feed-panel { width: 440px; z-index: 21; }
+.feed-header { background: #1e1e1e; }
+.feed-body { padding: 16px; overflow-y: auto; }
+.feed-screen { position: relative; border-radius: 8px; overflow: hidden; border: 3px solid #1e1e1e; background: #000; }
+.feed-screen svg { display: block; width: 100%; height: auto; filter: saturate(0.85) contrast(1.05); }
+/* faint scan lines so it looks like a camera */
+.feed-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.08) 0 2px, transparent 2px 4px);
+  pointer-events: none;
+}
+.feed-clock {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  background: rgba(0,0,0,0.55);
+  color: white;
+  font: 700 12px "Courier New", monospace;
+  padding: 4px 6px;
+  border-radius: 3px;
+}
+.feed-note { margin: 12px 0; line-height: 1.4; }
+.feed-911 { background: var(--alert); width: 100%; margin: 0; }
+
+/* Little Alert Girl faces used like emojis */
+.face-icon { width: 42px; height: auto; vertical-align: middle; margin-left: 4px; }
+.toast .face-icon { width: 40px; margin: 0; background: white; border-radius: 50%; padding: 2px; }
+
+/* ----- Event queue panel ----- */
+.queue-panel {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--card-shadow);
+}
+.count {
+  display: inline-block;
+  min-width: 24px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--dark-button);
+  color: white;
+  font-size: 14px;
+  text-align: center;
+  vertical-align: middle;
+}
+/* "All clear" message when nothing is in the queue */
+.empty { text-align: center; color: var(--ink-2); padding: 8px 0 4px; }
+.empty p { margin: 8px 0 0; line-height: 1.5; }
+.empty strong { color: var(--good); font-size: 18px; }
+.waiting-mascot svg { width: 220px; max-width: 100%; height: auto; }
+.group-heading {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 12px 0 6px;
+}
+.group-heading.alert    { color: var(--alert); }
+.group-heading.reminder { color: var(--reminder); }
+.queue-list { list-style: none; padding: 0; margin: 0; }
+
+/* One row in the queue */
+.queue-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+.queue-item.alert    { background: var(--alert-light); }
+.queue-item.reminder { background: var(--reminder-light); }
+.queue-item:hover    { filter: brightness(0.97); }
+.queue-item.selected.alert    { border-color: var(--alert); }
+.queue-item.selected.reminder { border-color: var(--reminder); }
+.queue-item .name { flex: 1; font-weight: 600; }
+.queue-item .time { color: var(--ink-3); font-size: 13px; white-space: nowrap; }
+
+/* Badges: alerts are solid red, reminders are outlined blue */
+.badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.badge.alert    { background: var(--alert); color: white; }
+.badge.reminder { background: var(--card); color: var(--reminder); border: 2px solid var(--reminder); }
+
+/* Alerts get a pulsing badge so they grab attention */
+.queue-item.alert .badge { animation: pulse 1.2s infinite; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217,58,63,0.6); }
+  50%      { box-shadow: 0 0 0 6px rgba(217,58,63,0); }
+}
+
+/* ----- The selected event, shown in full ----- */
+.event-card {
+  display: none;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid;
+}
+.event-card.show { display: block; }
+.event-card.alert    { border-color: var(--alert); }
+.event-card.reminder { border-color: var(--reminder); }
+.card-header {
+  padding: 8px 14px;
+  color: white;
+  font-weight: 800;
+  letter-spacing: 1px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.event-card.alert    .card-header { background: var(--alert); }
+.event-card.reminder .card-header { background: var(--reminder); }
+.card-body { padding: 14px 16px 12px; }
+.card-body h3 { margin: 0 0 6px; }
+.card-body p  { margin: 0 0 12px; line-height: 1.4; }
+
+/* Button colors. The main button matches the event type. */
+.primary   { color: white; }
+.event-card.alert    .primary { background: var(--alert); }
+.event-card.reminder .primary { background: var(--reminder); }
+.secondary { background: var(--secondary); color: var(--ink); }
+/* Looks disabled, but can still be clicked to explain why */
+.unavailable { background: var(--unavailable); color: var(--unavailable-ink); border: 1px dashed var(--line-4); cursor: not-allowed; }
+
+/* Alert Girl pictures */
+.mascot { display: none; text-align: center; margin-bottom: 8px; }
+.mascot.show { display: block; }
+.mascot svg { width: 110px; height: auto; }
+#mascot-air svg { width: 220px; }  /* the wider pictures get more room */
+#mascot-water svg { width: 170px; }
+#mascot-smoke svg { width: 190px; }
+#mascot-filter svg { width: 130px; }
+#mascot-install svg { width: 140px; }
+
+/* ----- Toaster message: a small dark bar at the top of the screen ----- */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--toast);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+  width: max-content;
+  max-width: min(520px, calc(100% - 32px));
+  box-sizing: border-box;
+  display: none;
+  align-items: center;
+  gap: 14px;    /* small space between Alert Girl and the message */
+  z-index: 30;  /* keeps the toast on top of everything else */
+}
+.toast.show { display: flex; }
+/* The message text: centered and easy to read */
+/* "balance" makes the browser split the text into lines of about the same length */
+.toast span { flex: 1; text-align: center; line-height: 1.45; text-wrap: balance; }
+
+/* ----- Fake photo upload window ----- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.overlay.show { display: flex; }
+.upload-window {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 20px;
+  width: 420px;
+  max-width: 100%;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+}
+.upload-window h3 { margin: 0 0 8px; }
+.upload-window p  { margin: 0 0 14px; line-height: 1.4; }
+.upload-window .primary { background: var(--reminder); }
+.choice-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.choice { flex: 1; min-width: 150px; padding: 14px; margin: 0; }
+
+/* ----- Pretend mechanic calendar ----- */
+.calendar-window { width: 480px; }
+.cal-label { font-weight: 700; font-size: 14px; margin: 10px 0 6px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-day {
+  margin: 0;
+  padding: 6px 0;
+  font-size: 13px;
+  line-height: 1.2;
+  background: var(--open);
+  color: var(--ink);
+  border: 2px solid transparent;
+}
+.cal-day .num { display: block; font-size: 18px; font-weight: 700; }
+.cal-day:disabled { background: var(--booked); color: var(--unavailable-ink); opacity: 1; }
+.cal-day.picked, .cal-time.picked { border-color: var(--reminder); background: var(--reminder-light); }
+.cal-times { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; }
+.cal-time { margin: 0; padding: 8px 10px; font-size: 14px; background: var(--open); color: var(--ink); border: 2px solid transparent; }
+.cal-time:disabled { background: var(--booked); color: var(--unavailable-ink); text-decoration: line-through; opacity: 1; }
+.cal-hint { color: var(--ink-4); font-size: 14px; align-self: center; }
+.cal-legend { font-size: 12px; color: var(--ink-3); margin: 10px 0; display: flex; align-items: center; gap: 6px; }
+.dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.dot.open { background: var(--open); border: 1px solid var(--open-line); }
+.dot.booked { background: var(--booked); border: 1px solid var(--line-4); margin-left: 10px; }
+.fake-folder { border: 1px solid var(--line-3); border-radius: 8px; margin-bottom: 14px; }
+.folder-name {
+  background: var(--booked);
+  padding: 8px 12px;
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+}
+.fake-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.fake-file:hover    { background: var(--hover); }
+.fake-file.selected { background: var(--file-selected); }
+.file-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #8ec5fc, #e0c3fc);
+}
