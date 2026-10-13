@@ -45,7 +45,9 @@
       .layout { grid-template-columns: 1fr; }
     }
     .layout h2 { margin: 0 0 12px; font-size: 20px; }
-    .demo-option { display: inline-block; margin: 0 0 18px; color: #555; font-size: 14px; cursor: pointer; }
+    /* Demo helper: "2 days ago" checkbox next to each Trigger button */
+    .trigger-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .backdate { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #666; cursor: pointer; white-space: nowrap; }
 
     /* ----- Insurance score card ----- */
     .score-card {
@@ -103,17 +105,21 @@
     .score-mascot svg { width: 120px; height: auto; display: block; }
 
     /* Buttons on the right side of the score card */
+    /* Fills the white space to the right and centers the buttons in it */
     .score-actions {
+      flex: 1;
+      align-self: stretch;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-left: auto;
-      min-width: 220px;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      min-width: 240px;
     }
     .action-btn {
       background: #2f3b4c;
       color: white;
-      text-align: left;
+      width: 240px;
       margin: 0;
       padding: 12px 16px;
     }
@@ -376,12 +382,8 @@
 
   <!-- ============ CONTENT: what's on the page ============ -->
   <h1>Alert Popup Demo</h1>
-  <p>Click "Trigger" to pretend an event just happened. Trigger several to see them queue up.</p>
-  <!-- Demo helper for testing older events. Remove for the real app. -->
-  <label class="demo-option">
-    <input type="checkbox" id="backdate">
-    Demo: trigger events as if they happened 2 days ago
-  </label>
+  <p>Click "Trigger" to pretend an event just happened. Trigger several to see them queue up.
+     Tick "2 days ago" to add one as if it happened two days ago.</p>
 
   <!-- Insurance score: shows how unaddressed reminders affect your insurance cost -->
   <section class="score-card" id="scoreCard">
@@ -1282,10 +1284,30 @@
       const button = document.createElement("button");
       button.className = "trigger-btn";
       button.textContent = "Trigger";
-      button.onclick = function () { addEvent(alertInfo); };
+      button.onclick = function () { addEvent(alertInfo, false); };
+
+      // Demo helper: ticking this adds the event as if it happened 2 days ago,
+      // then clears the tick so it's ready to use again. Remove for the real app.
+      const backdate = document.createElement("label");
+      backdate.className = "backdate";
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.onchange = function () {
+        if (box.checked) {
+          addEvent(alertInfo, true);
+          setTimeout(function () { box.checked = false; }, 400);  // brief tick, then clear
+        }
+      };
+      backdate.appendChild(box);
+      backdate.appendChild(document.createTextNode("2 days ago"));
+
+      const controls = document.createElement("div");
+      controls.className = "trigger-controls";
+      controls.appendChild(backdate);
+      controls.appendChild(button);
 
       row.appendChild(label);
-      row.appendChild(button);
+      row.appendChild(controls);
       document.getElementById(listId).appendChild(row);
     });
 
@@ -1408,10 +1430,10 @@
     let selectedId = null;   // the id of the event shown in full
 
     // Add a new event to the queue.
-    function addEvent(alertInfo) {
+    // "twoDaysAgo" is a demo helper: true pretends it happened 2 days ago.
+    function addEvent(alertInfo, twoDaysAgo) {
       let time = new Date();
-      // Demo helper: if the "2 days ago" box is ticked, pretend it happened 2 days ago.
-      if (document.getElementById("backdate").checked) {
+      if (twoDaysAgo) {
         time = new Date(Date.now() - 2 * ONE_DAY);
       }
       const entry = { id: nextId, info: alertInfo, time: time };
