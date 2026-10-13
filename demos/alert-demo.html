@@ -156,6 +156,19 @@
           { label: "Dismiss",               style: "secondary", action: "dismiss" },
           { label: "Snooze for 15 minutes", style: "secondary", action: "snooze" }
         ]
+      },
+      {
+        type: "alert",
+        name: "Air quality",
+        title: "Air Quality Low",
+        message: "Air quality is poor AQI over 100. " +
+                 "Your air purifiers are not currently able to keep your air at ideal levels. " +
+                 "You may wish to check to ensure the filters do not need to be changed.",
+        buttons: [
+          { label: "Dismiss",               style: "secondary", action: "dismiss" },
+          { label: "Snooze for 15 minutes", style: "secondary", action: "snooze" },
+          { label: "Maximize Air Quality",  style: "primary",   action: "maximizeAir" }
+        ]
       }
     ];
 
@@ -231,6 +244,11 @@
         // Show the same alert again after the snooze time.
         // minutes x 60 seconds x 1000 milliseconds
         setTimeout(function () { showAlert(alertInfo); }, SNOOZE_MINUTES * 60 * 1000);
+      }
+      else if (action === "maximizeAir") {
+        showToast("All system fans set to maximum and air quality alerts paused for 1 hour.", 10);
+        // Show the alert again after 1 hour (60 minutes x 60 seconds x 1000 milliseconds).
+        setTimeout(function () { showAlert(alertInfo); }, 60 * 60 * 1000);
       }
       else if (action === "replaced") {
         showToast("Marked as replaced. Thanks!", 5);
