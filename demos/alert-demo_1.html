@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alert Popup Demo</title>
+
+  <!-- ============ STYLE: how things look ============ -->
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f5f7;
+      padding: 40px 16px;
+      color: #222;
+    }
+    button {
+      font-size: 15px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 4px;
+    }
+    .trigger-btn { background: #333; color: white; }
+
+    /* The popup box. Hidden until we add the "show" class. */
+    .alert-popup {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 320px;
+      max-width: calc(100% - 32px);
+      background: white;
+      border-left: 6px solid #e5484d;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      padding: 16px;
+      display: none;
+    }
+    .alert-popup.show { display: block; }
+    .alert-popup h3 { margin: 0 0 6px; }
+    .alert-popup p  { margin: 0 0 12px; }
+    .action-btn  { background: #e5484d; color: white; }
+    .dismiss-btn { background: #e8e8e8; color: #222; }
+  </style>
+</head>
+<body>
+
+  <!-- ============ CONTENT: what's on the page ============ -->
+  <h1>Alert Popup Demo</h1>
+  <p>Click a button to pretend an event just happened.</p>
+
+  <button class="trigger-btn" onclick="showAlert('Reminder', 'Fire Extinguisher in the garage needs to be replaced.', 'Mark as replaced')">
+    Trigger reminder
+  </button>
+  <button class="trigger-btn" onclick="showSmokeAlarm()">
+    Trigger alert
+  </button>
+
+  <!-- The popup itself (starts hidden) -->
+  <div class="alert-popup" id="alertPopup">
+    <h3 id="alertTitle"></h3>
+    <p id="alertMessage"></p>
+    <button class="action-btn" id="alertAction" onclick="takeAction()"></button>
+    <button class="dismiss-btn" onclick="hideAlert()">Dismiss</button>
+  </div>
+
+  <!-- ============ SCRIPT: what things do ============ -->
+  <script>
+    // Show the popup with a title, a message, and an action button label.
+    function showAlert(title, message, actionLabel) {
+      currentAlert = "";
+      document.getElementById("alertTitle").textContent = title;
+      document.getElementById("alertMessage").textContent = message;
+      document.getElementById("alertAction").textContent = actionLabel;
+      document.getElementById("alertPopup").classList.add("show");
+    }
+
+    // Hide the popup.
+    function hideAlert() {
+      document.getElementById("alertPopup").classList.remove("show");
+    }
+
+    // Remembers which alert is showing, so the action button knows what to do.
+    let currentAlert = "";
+
+    // Show the smoke alarm alert.
+    function showSmokeAlarm() {
+      showAlert("ALERT", "Smoke Alarm triggered, possible fire.", "Snooze alarm for 15 minutes");
+      currentAlert = "smoke";
+    }
+
+    // What happens when the user clicks the action button.
+    function takeAction() {
+      if (currentAlert === "smoke") {
+        // Snooze: hide now, then show the alarm again in 15 minutes.
+        // 15 minutes x 60 seconds x 1000 milliseconds
+        hideAlert();
+        setTimeout(showSmokeAlarm, 15 * 60 * 1000);
+        alert("Smoke alarm snoozed. It will pop up again in 15 minutes.");
+      } else {
+        alert("Action taken! (In the real app, this would open the right page.)");
+        hideAlert();
+      }
+      currentAlert = "";
+    }
+
+    // Example of an AUTOMATIC trigger: pops up by itself 5 seconds after the page loads.
+    setTimeout(function () {
+      showAlert("Reminder", "This popup appeared on its own after 5 seconds.", "Got it");
+    }, 5000);
+  </script>
+
+</body>
+</html>
