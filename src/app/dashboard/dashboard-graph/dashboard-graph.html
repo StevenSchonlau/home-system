@@ -1,0 +1,11 @@
+<section aria-labelledby="graph-title">
+  <a routerLink="/dashboard">← Back to dashboard</a>
+
+  @if (tile(); as tile) {
+    <h1 id="graph-title">{{ title() }}</h1>
+    <app-sensor-chart class="chart" [fields]="tile.fields" />
+  } @else {
+    <h1 id="graph-title">Tile not found</h1>
+    <p>This tile no longer exists on the dashboard.</p>
+  }
+</section>
