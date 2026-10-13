@@ -1,0 +1,39 @@
+<div class="range" role="group" aria-label="Time range">
+  <div class="segmented">
+    <button type="button" [class.active]="range().mode === 'last'" [attr.aria-pressed]="range().mode === 'last'" (click)="setMode('last')">
+      Last
+    </button>
+    <button type="button" [class.active]="range().mode === 'custom'" [attr.aria-pressed]="range().mode === 'custom'" (click)="setMode('custom')">
+      Custom
+    </button>
+  </div>
+
+  @if (range().mode === 'last') {
+    <input
+      type="number"
+      class="amount"
+      min="1"
+      step="1"
+      aria-label="Amount"
+      [value]="range().amount"
+      (input)="setAmount($any($event.target).value)"
+    />
+    <select aria-label="Unit" (change)="setUnit($any($event.target).value)">
+      @for (unit of units; track unit) {
+        <option [value]="unit" [selected]="unit === range().unit">{{ unit }}</option>
+      }
+    </select>
+  } @else {
+    <label>
+      <span>From</span>
+      <input type="datetime-local" [value]="range().start" (change)="setStart($any($event.target).value)" />
+    </label>
+    <label>
+      <span>To</span>
+      <input type="datetime-local" [value]="range().end" (change)="setEnd($any($event.target).value)" />
+    </label>
+    @if (startAfterEnd()) {
+      <span class="hint" role="alert">Start is after end</span>
+    }
+  }
+</div>

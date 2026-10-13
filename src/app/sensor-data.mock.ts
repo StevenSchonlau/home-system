@@ -6,6 +6,8 @@ const MOCK_SENSORS = [
   { accountName: 'home', sensorType: 'PowerMeter', DataKey: 'watts', start: 800 },
   { accountName: 'home', sensorType: 'Crockpot', DataKey: 'temperature', start: 85 },
   { accountName: 'home', sensorType: 'Outdoor', DataKey: 'temperature', start: 12 },
+  // Non-numeric values: shown as a bar chart of value counts.
+  { accountName: 'home', sensorType: 'GarageDoor', DataKey: 'state', start: 0, states: ['open', 'closed'] },
   // Different account: should be filtered out.
   { accountName: 'neighbor', sensorType: 'Thermostat', DataKey: 'temperature', start: 19 },
 ];
@@ -25,8 +27,10 @@ export function createMockApi(): () => SensorReading[] {
         sensorType: sensor.sensorType,
         dateTime: new Date(time).toISOString(),
         accountName: sensor.accountName,
-        DataKey: sensor.DataKey,
-        DataValue: current[i],
+        dataKey: sensor.DataKey,
+        dataValue: sensor.states
+          ? sensor.states[Math.floor(Math.random() * sensor.states.length)]
+          : String(current[i]),
       });
     });
   };

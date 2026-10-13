@@ -3,10 +3,16 @@
   position: relative;
   min-height: 10rem;
   padding: 1rem;
-  background: #f0f7fa;
-  border: 1px solid #d5e1e7;
-  border-radius: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
   overflow: auto;
+  transition: border-color 120ms;
+}
+
+:host(:hover) {
+  border-color: var(--accent);
 }
 
 :host(.size-1x1) {

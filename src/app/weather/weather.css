@@ -3,8 +3,8 @@
 }
 
 button {
-  background: #155e75;
-  color: white;
+  background: var(--accent);
+  color: var(--accent-contrast);
   border: 0;
   border-radius: 0.4rem;
   padding: 0.75rem 1rem;
@@ -18,7 +18,7 @@ button:disabled {
 }
 
 .error {
-  color: #a31515;
+  color: var(--danger);
 }
 
 dl {
@@ -29,7 +29,7 @@ dl {
 
 dl div {
   padding: 1rem;
-  background: #f0f7fa;
+  background: var(--surface);
   border-radius: 0.5rem;
 }
 
@@ -58,7 +58,7 @@ caption {
 th,
 td {
   padding: 0.75rem;
-  border-bottom: 1px solid #d5e1e7;
+  border-bottom: 1px solid var(--border);
 }
 
 .attribution {

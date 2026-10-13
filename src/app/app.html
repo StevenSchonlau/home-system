@@ -1,7 +1,17 @@
-<header>Home System</header>
+<header>Home System
+  <button
+      type="button"
+      class="btn theme-toggle"
+      (click)="themeService.toggle()"
+      [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+    >
+    {{ themeService.theme() === 'dark' ? '☀' : '☾' }}
+  </button>
+</header>
 <nav aria-label="Dashboard">
   <a routerLink="/weather" routerLinkActive="active" ariaCurrentWhenActive="page">Weather</a>
   <a routerLink="/air-quality" routerLinkActive="active" ariaCurrentWhenActive="page">Air Quality</a>
+  <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page">Dashboard</a>
 </nav>
 <main>
   <router-outlet />

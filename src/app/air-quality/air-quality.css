@@ -29,7 +29,7 @@ dl {
 
 dl div {
   padding: 1rem;
-  background: #f0f7fa;
+  background: var(--surface);
   border-radius: 0.5rem;
 }
 

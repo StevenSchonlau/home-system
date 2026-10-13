@@ -2,6 +2,28 @@
   display: block;
 }
 
+h1 {
+  margin: 1rem 0;
+  font-size: 1.6rem;
+}
+
+.toolbar,
+.card {
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.toolbar {
+  margin-bottom: 1rem;
+}
+
+.card {
+  padding: 1rem;
+}
+
 .chart {
   height: 28rem;
 }

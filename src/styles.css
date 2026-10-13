@@ -1,1 +1,122 @@
-/* You can add global styles to this file, and also import other style files */
+/* Theme tokens. ThemeService sets data-theme="light" | "dark" on <html>. */
+:root {
+  color-scheme: light;
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --surface-hover: #eef2f5;
+  --border: #dde3e8;
+  --text: #16232b;
+  --text-muted: #5d6e78;
+  --accent: #0e7490;
+  --accent-hover: #0b5f76;
+  --accent-contrast: #ffffff;
+  --danger: #c62828;
+  --header-bg: #16232b;
+  --header-text: #ffffff;
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --shadow: 0 1px 2px rgba(16, 24, 32, 0.06), 0 1px 3px rgba(16, 24, 32, 0.08);
+  --focus: 0 0 0 3px rgba(14, 116, 144, 0.35);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0f1418;
+  --surface: #182027;
+  --surface-hover: #212b33;
+  --border: #2b3640;
+  --text: #e6edf2;
+  --text-muted: #93a3ae;
+  --accent: #22a6c3;
+  --accent-hover: #3bb9d4;
+  --accent-contrast: #0b1216;
+  --danger: #ef6b6b;
+  --header-bg: #0b1014;
+  --header-text: #e6edf2;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --focus: 0 0 0 3px rgba(34, 166, 195, 0.45);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* Buttons: add .btn, plus .btn-primary or .btn-danger for emphasis. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 2.25rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms;
+}
+
+.btn:hover {
+  background: var(--surface-hover);
+}
+
+.btn:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #ffffff;
+}
+
+/* Form controls */
+input[type='number'],
+input[type='datetime-local'],
+select {
+  height: 2.25rem;
+  box-sizing: border-box;
+  padding: 0 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--accent);
+}
