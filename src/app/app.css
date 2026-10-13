@@ -1,0 +1,18 @@
+:host {
+  display: block;
+  font-family: system-ui, sans-serif;
+  color: #183442;
+}
+
+header {
+  padding: 1rem 1.5rem;
+  background: #183442;
+  color: white;
+  font-weight: bold;
+}
+
+main {
+  max-width: 60rem;
+  margin: auto;
+  padding: 1.5rem;
+}
