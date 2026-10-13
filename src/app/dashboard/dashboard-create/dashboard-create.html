@@ -1,0 +1,47 @@
+<section aria-labelledby="create-title">
+  <h1 id="create-title">Add tile</h1>
+
+  <fieldset>
+    <legend>Size</legend>
+    @for (option of sizes; track option) {
+      <label>
+        <input
+          type="radio"
+          name="size"
+          [value]="option"
+          [checked]="size() === option"
+          (change)="size.set(option)"
+        />
+        {{ option }}
+      </label>
+    }
+    @if (size() === '1x3') {
+      <label>
+        <input type="checkbox" [checked]="showGraph()" (change)="showGraph.set($any($event.target).checked)" />
+        Show as graph
+      </label>
+    }
+  </fieldset>
+
+  <fieldset>
+    <legend>Entries (pick 1–{{ maxFields }})</legend>
+    @for (field of availableFields(); track field.key) {
+      <label>
+        <input
+          type="checkbox"
+          [checked]="selected().includes(field.key)"
+          [disabled]="!selected().includes(field.key) && selected().length >= maxFields"
+          (change)="toggleField(field.key, $any($event.target).checked)"
+        />
+        {{ field.label }}
+      </label>
+    } @empty {
+      <p>No sensor data found for this account yet.</p>
+    }
+  </fieldset>
+
+  <div class="actions">
+    <button type="button" (click)="create()" [disabled]="selected().length === 0">Create tile</button>
+    <a routerLink="/dashboard">Cancel</a>
+  </div>
+</section>
