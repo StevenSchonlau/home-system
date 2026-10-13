@@ -1,0 +1,18 @@
+<section aria-labelledby="graph-title">
+  <a class="btn back" routerLink="/dashboard">← Dashboard</a>
+
+  @if (tile(); as tile) {
+    <h1 id="graph-title">{{ title() }}</h1>
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <app-time-range-picker />
+      </div>
+    </div>
+    <div class="card">
+      <app-sensor-chart class="chart" [fields]="tile.fields" [kind]="kind(tile)" />
+    </div>
+  } @else {
+    <h1 id="graph-title">Tile not found</h1>
+    <p>This tile no longer exists on the dashboard.</p>
+  }
+</section>

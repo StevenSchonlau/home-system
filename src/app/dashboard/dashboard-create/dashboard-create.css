@@ -1,0 +1,81 @@
+:host {
+  display: block;
+}
+
+h1 {
+  margin: 0 0 1rem;
+  font-size: 1.6rem;
+}
+
+fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+legend {
+  padding: 0 0.4rem;
+  font-weight: 600;
+}
+
+label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* One option per row: radio, name, then a muted description. */
+.display-options {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.option-label {
+  min-width: 7.5rem;
+  font-weight: 500;
+}
+
+.option-description {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.display-options .hint {
+  flex-basis: auto;
+}
+
+.hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.limits {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.limits-label {
+  min-width: 12rem;
+  font-weight: 500;
+}
+
+.limits input {
+  width: 6rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

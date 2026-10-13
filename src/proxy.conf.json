@@ -1,0 +1,7 @@
+{
+  "/Pioneer": {
+    "target": "https://tybodager-001-site9.gtempurl.com", 
+    "secure": true,
+    "changeOrigin": true
+  }
+}

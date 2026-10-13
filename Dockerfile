@@ -21,8 +21,8 @@ FROM nginx:alpine
 # Note: Check your Angular version's output path (e.g., dist/home-system or dist/home-system/browser)
 COPY --from=build /app/dist/home-system/browser /usr/share/nginx/html
 
-# Optional: Custom Nginx configuration for SPA routing
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Custom Nginx configuration for SPA routing
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

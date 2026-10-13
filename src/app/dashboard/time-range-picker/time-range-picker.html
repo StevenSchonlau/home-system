@@ -1,0 +1,52 @@
+<!-- Renders toolbar sections directly (the host is display: contents); put it inside a .toolbar-group. -->
+<div class="toolbar-section">
+  <div class="segmented" role="group" aria-label="Time range">
+    <button
+      type="button"
+      [class.active]="range().mode === 'last'"
+      [attr.aria-pressed]="range().mode === 'last'"
+      (click)="setMode('last')"
+    >
+      Last
+    </button>
+    <button
+      type="button"
+      [class.active]="range().mode === 'custom'"
+      [attr.aria-pressed]="range().mode === 'custom'"
+      (click)="setMode('custom')"
+    >
+      Custom
+    </button>
+  </div>
+</div>
+
+@if (range().mode === 'last') {
+  <div class="toolbar-section">
+    <input
+      type="number"
+      class="amount"
+      min="1"
+      step="1"
+      aria-label="Amount"
+      [value]="range().amount"
+      (input)="setAmount($any($event.target).value)"
+    />
+    <select aria-label="Unit" (change)="setUnit($any($event.target).value)">
+      @for (unit of units; track unit) {
+        <option [value]="unit" [selected]="unit === range().unit">{{ unit }}</option>
+      }
+    </select>
+  </div>
+} @else {
+  <label class="toolbar-section">
+    <span class="field-label">From</span>
+    <input type="datetime-local" [value]="range().start" (change)="setStart($any($event.target).value)" />
+  </label>
+  <label class="toolbar-section">
+    <span class="field-label">To</span>
+    <input type="datetime-local" [value]="range().end" (change)="setEnd($any($event.target).value)" />
+  </label>
+  @if (startAfterEnd()) {
+    <span class="toolbar-section hint" role="alert">Start is after end</span>
+  }
+}

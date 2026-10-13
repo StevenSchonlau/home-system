@@ -1,0 +1,48 @@
+:host {
+  display: block;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: var(--header-bg);
+  color: var(--header-text);
+  font-weight: bold;
+}
+
+.theme-toggle {
+  width: 2.25rem;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  color: inherit;
+  font-size: 1.1rem;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+
+}
+nav {
+  display: flex;
+  gap: 1.5rem;
+  max-width: 60rem;
+  margin: auto;
+  padding: 1rem 1.5rem 0;
+}
+
+nav a {
+  color: #155e75;
+}
+
+nav a.active {
+  font-weight: bold;
+}
+
+main {
+  max-width: 60rem;
+  margin: auto;
+  padding: 1.5rem;
+}

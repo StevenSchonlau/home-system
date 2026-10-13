@@ -1,0 +1,36 @@
+:host {
+  display: block;
+  position: relative;
+  min-height: 10rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: auto;
+  transition: border-color 120ms;
+}
+
+:host(:hover) {
+  border-color: var(--accent);
+}
+
+:host(.size-1x1) {
+  grid-column: span 1;
+}
+
+:host(.size-1x2) {
+  grid-column: span 2;
+}
+
+:host(.size-1x3) {
+  grid-column: span 3;
+}
+
+/* Phones: the dashboard grid is one column, so every size takes one cell. */
+@media (max-width: 600px) {
+  :host(.size-1x2),
+  :host(.size-1x3) {
+    grid-column: span 1;
+  }
+}

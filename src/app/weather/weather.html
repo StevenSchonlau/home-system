@@ -1,0 +1,58 @@
+<section aria-labelledby="weather-title" [attr.aria-busy]="loading()">
+  <h1 id="weather-title">Weather forecast</h1>
+  <p>Current conditions and today's hourly forecast for your location.</p>
+  <button type="button" (click)="loadForecast()" [disabled]="loading()">
+    {{ loading() ? 'Loading...' : 'Refresh weather' }}
+  </button>
+
+  @if (loading()) {
+    <p role="status">Finding your location and loading the forecast...</p>
+  }
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (forecast(); as weather) {
+    <p>
+      Forecast location: {{ weather.latitude }}, {{ weather.longitude }}
+      &middot; Time zone: {{ weather.timezone }}
+    </p>
+    <h2>Current conditions</h2>
+    <p>Updated {{ weather.current.time.replace('T', ' ') }} ({{ weather.timezone }})</p>
+    <dl>
+      <div>
+        <dt>Temperature</dt>
+        <dd>{{ weather.current.temperature_2m }} {{ weather.current_units.temperature_2m }}</dd>
+      </div>
+      <div>
+        <dt>Humidity</dt>
+        <dd>{{ weather.current.relative_humidity_2m }} {{ weather.current_units.relative_humidity_2m }}</dd>
+      </div>
+      <div>
+        <dt>Wind speed</dt>
+        <dd>{{ weather.current.wind_speed_10m }} {{ weather.current_units.wind_speed_10m }}</dd>
+      </div>
+    </dl>
+    <div class="table-container">
+      <table>
+        <caption>Today's hourly forecast ({{ weather.timezone }})</caption>
+        <thead>
+          <tr>
+            <th scope="col">Local time</th>
+            <th scope="col">Temperature ({{ weather.hourly_units.temperature_2m }})</th>
+            <th scope="col">Precipitation chance ({{ weather.hourly_units.precipitation_probability }})</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (time of weather.hourly.time; track time; let i = $index) {
+            <tr>
+              <th scope="row">{{ time.replace('T', ' ') }}</th>
+              <td>{{ weather.hourly.temperature_2m[i] }}</td>
+              <td>{{ weather.hourly.precipitation_probability[i] }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  <p class="attribution">Weather data by <a href="https://open-meteo.com/">Open-Meteo</a>.</p>
+</section>

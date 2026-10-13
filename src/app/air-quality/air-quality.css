@@ -1,0 +1,44 @@
+:host {
+  display: block;
+}
+
+button {
+  background: #155e75;
+  color: white;
+  border: 0;
+  border-radius: 0.4rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.error {
+  color: #a31515;
+}
+
+dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+dl div {
+  padding: 1rem;
+  background: var(--surface);
+  border-radius: 0.5rem;
+}
+
+dd {
+  margin: 0.5rem 0 0;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.attribution {
+  margin-top: 2rem;
+}
