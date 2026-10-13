@@ -1,0 +1,57 @@
+<section aria-labelledby="dashboard-title">
+  <h1 id="dashboard-title">Dashboard</h1>
+
+  <div class="toolbar">
+    <button type="button" (click)="editing.set(!editing())" [attr.aria-pressed]="editing()">
+      {{ editing() ? 'Done' : 'Reorder tiles' }}
+    </button>
+    <a class="button" routerLink="/dashboard/create">Add tile</a>
+    <button type="button" (click)="exportConfig()">Export layout</button>
+    <button type="button" (click)="fileInput.click()">Import layout</button>
+    <input #fileInput type="file" accept="application/json,.json" hidden (change)="importConfig($event)" />
+  </div>
+
+  @if (importError()) {
+    <p class="error" role="alert">{{ importError() }}</p>
+  }
+  @if (sensorData.error()) {
+    <p class="error" role="alert">{{ sensorData.error() }}</p>
+  }
+
+  <div
+    class="grid"
+    [class.editing]="editing()"
+    cdkDropList
+    cdkDropListOrientation="mixed"
+    [cdkDropListDisabled]="!editing()"
+    (cdkDropListDropped)="drop($event)"
+  >
+    @for (tile of configService.config().tiles; track tile.id) {
+      <app-dashboard-tile cdkDrag [size]="tile.size">
+        @if (editing()) {
+          <button
+            type="button"
+            class="remove"
+            aria-label="Remove tile"
+            (click)="configService.removeTile(tile.id)"
+          >
+            ×
+          </button>
+        }
+        <!-- Disabled while reordering so dragging doesn't open the graph. -->
+        <a
+          class="tile-link"
+          [routerLink]="['/dashboard/tile', tile.id]"
+          [attr.tabindex]="editing() ? -1 : null"
+          aria-label="Open graph"
+        >
+          @if (tile.size === '1x3' && tile.showGraph) {
+            <app-sensor-chart [fields]="tile.fields" />
+          } @else {
+            <app-state-entries [fields]="tile.fields" />
+          }
+        </a>
+      </app-dashboard-tile>
+    }
+  </div>
+</section>
