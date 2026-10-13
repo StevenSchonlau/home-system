@@ -186,6 +186,33 @@
     }
     .send-btn { background: #2f78c9; color: white; margin: 0; }
 
+    /* ----- Pretend security feed panel ----- */
+    .feed-panel { width: 440px; z-index: 21; }
+    .feed-header { background: #1e1e1e; }
+    .feed-body { padding: 16px; overflow-y: auto; }
+    .feed-screen { position: relative; border-radius: 8px; overflow: hidden; border: 3px solid #1e1e1e; background: #000; }
+    .feed-screen svg { display: block; width: 100%; height: auto; filter: saturate(0.85) contrast(1.05); }
+    /* faint scan lines so it looks like a camera */
+    .feed-screen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, rgba(0,0,0,0.08) 0 2px, transparent 2px 4px);
+      pointer-events: none;
+    }
+    .feed-clock {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      background: rgba(0,0,0,0.55);
+      color: white;
+      font: 700 12px "Courier New", monospace;
+      padding: 4px 6px;
+      border-radius: 3px;
+    }
+    .feed-note { margin: 12px 0; line-height: 1.4; }
+    .feed-911 { background: var(--alert); width: 100%; margin: 0; }
+
     /* Little Alert Girl faces used like emojis */
     .face-icon { width: 42px; height: auto; vertical-align: middle; margin-left: 4px; }
     .toast .face-icon { width: 40px; margin: 0; background: white; border-radius: 50%; padding: 2px; }
@@ -311,6 +338,8 @@
     .event-card.alert    .primary { background: var(--alert); }
     .event-card.reminder .primary { background: var(--reminder); }
     .secondary { background: #e8e8e8; color: #222; }
+    /* Looks disabled, but can still be clicked to explain why */
+    .unavailable { background: #f2f2f2; color: #aaa; border: 1px dashed #ccc; cursor: not-allowed; }
 
     /* Alert Girl pictures */
     .mascot { display: none; text-align: center; margin-bottom: 8px; }
@@ -762,6 +791,7 @@
       <button class="action-btn" onclick="openAccount()">My Progressive Account</button>
       <button class="action-btn" onclick="openChat()">Chat with Progressive</button>
       <button class="action-btn" onclick="startCall()">Call Progressive</button>
+      <button class="action-btn" onclick="startClaim()">Start Claim</button>
     </div>
 
     <!-- The queue of triggered events -->
@@ -1349,6 +1379,212 @@
     </form>
   </aside>
 
+  <!-- Pretend security camera feed (starts hidden). Opens over the right side of the screen. -->
+  <aside class="chat-panel feed-panel" id="feedPanel" aria-label="Security feed">
+    <div class="chat-header feed-header">
+      <span>Security Feed · Kitchen</span>
+      <button class="chat-close" onclick="closeFeed()" aria-label="Close security feed">✕</button>
+    </div>
+    <div class="feed-body">
+      <div class="feed-screen">
+<svg id="feedScene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270" role="img" aria-label="Security camera view: Alert Girl in a dramatic lunge with a fire extinguisher; when the stove fire grows she sprays it">
+  <!-- Wall and floor -->
+  <rect x="0" y="0" width="400" height="270" fill="#e9e2d0"/>
+  <rect x="0" y="214" width="400" height="56" fill="#b8a588"/>
+  <g stroke="#a39072" stroke-width="2"><line x1="0" y1="236" x2="400" y2="236"/><line x1="80" y1="214" x2="60" y2="270"/><line x1="200" y1="214" x2="200" y2="270"/><line x1="320" y1="214" x2="340" y2="270"/></g>
+  <g stroke="#1e1e1e" stroke-width="3.5" stroke-linejoin="round">
+    <!-- Upper cabinets -->
+    <rect x="200" y="10" width="190" height="62" fill="#9bc3d6"/>
+    <line x1="263" y1="10" x2="263" y2="72"/><line x1="326" y1="10" x2="326" y2="72"/>
+    <!-- Refrigerator on the left -->
+    <rect x="2" y="62" width="58" height="154" rx="5" fill="#dfe3e8"/>
+    <line x1="2" y1="116" x2="60" y2="116"/>
+    <line x1="50" y1="76" x2="50" y2="104" stroke-width="5"/>
+    <line x1="50" y1="128" x2="50" y2="170" stroke-width="5"/>
+    <!-- Wall clock -->
+    <circle cx="180" cy="52" r="14" fill="#ffffff"/>
+    <path d="M180 52 V43 M180 52 L187 55" fill="none" stroke-width="2.5"/>
+    <!-- Range hood over the stove -->
+    <path d="M266 72 H314 L322 86 H258 Z" fill="#c7ccd2"/>
+    <!-- Counter and lower cabinets -->
+    <rect x="160" y="140" width="240" height="76" fill="#9bc3d6"/>
+    <rect x="156" y="132" width="248" height="12" fill="#f4f1ea"/>
+    <!-- Dishwasher -->
+    <rect x="178" y="148" width="62" height="62" fill="#d6d9dd"/>
+    <line x1="186" y1="158" x2="232" y2="158" stroke-width="4"/>
+    <!-- Microwave on the counter -->
+    <rect x="168" y="100" width="70" height="32" rx="3" fill="#d6d9dd"/>
+    <rect x="174" y="106" width="44" height="20" rx="2" fill="#2e3a4a"/>
+    <circle cx="228" cy="111" r="2.5" fill="#1e1e1e"/><circle cx="228" cy="120" r="2.5" fill="#1e1e1e"/>
+    <!-- Toaster -->
+    <rect x="352" y="112" width="30" height="20" rx="6" fill="#d93a3f"/>
+    <path d="M360 112 V106 M374 112 V106" fill="none" stroke-width="3"/>
+    <!-- Coffee maker -->
+    <path d="M386 96 H400 V132 H386 Z" fill="#2e3a4a"/>
+    <!-- Stove -->
+    <rect x="250" y="140" width="80" height="76" fill="#d6d9dd"/>
+    <rect x="260" y="160" width="60" height="40" rx="3" fill="#2e3a4a"/>
+    <rect x="252" y="128" width="76" height="8" fill="#2e3a4a"/>
+    <!-- Pan -->
+    <path d="M262 124 H318 L314 132 H266 Z" fill="#3a3a3a"/>
+    <line x1="318" y1="126" x2="346" y2="120" stroke-width="5"/>
+  </g>
+  <!-- Flames (flickering) -->
+  <g>
+    <path d="M266 124 Q262 96 276 84 Q276 100 284 102 Q282 76 298 60 Q298 84 308 92 Q314 80 312 70 Q328 92 316 124 Z" fill="#f2552c" stroke="#1e1e1e" stroke-width="3">
+      <animate attributeName="d" dur="0.7s" repeatCount="indefinite" values="
+        M266 124 Q262 96 276 84 Q276 100 284 102 Q282 76 298 60 Q298 84 308 92 Q314 80 312 70 Q328 92 316 124 Z;
+        M266 124 Q258 100 274 90 Q278 102 286 100 Q286 70 300 56 Q300 82 310 88 Q318 78 316 66 Q330 96 316 124 Z;
+        M266 124 Q262 96 276 84 Q276 100 284 102 Q282 76 298 60 Q298 84 308 92 Q314 80 312 70 Q328 92 316 124 Z"/>
+    </path>
+    <path d="M276 124 Q274 106 284 98 Q286 108 292 108 Q292 92 300 84 Q302 100 308 104 Q314 112 306 124 Z" fill="#f5c400">
+      <animate attributeName="opacity" values="1;0.7;1" dur="0.5s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  <!-- After 10 seconds the fire grows and fills the frame -->
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;1" begin="10s" dur="1.5s" fill="freeze"/>
+    <g transform="translate(300 130)">
+      <g>
+        <animateTransform attributeName="transform" type="scale" values="0.3;1.7" begin="10s" dur="3s" fill="freeze"/>
+        <g transform="translate(-300 -130)">
+          <path d="M226 132 Q212 86 240 64 Q240 92 254 94 Q246 46 278 18 Q276 62 292 70 Q292 30 316 6 Q314 48 330 60 Q346 34 342 14 Q378 56 366 96 Q384 88 386 70 Q404 112 374 132 Z" fill="#f2552c" stroke="#1e1e1e" stroke-width="3">
+            <animate attributeName="d" dur="0.6s" repeatCount="indefinite" values="
+              M226 132 Q212 86 240 64 Q240 92 254 94 Q246 46 278 18 Q276 62 292 70 Q292 30 316 6 Q314 48 330 60 Q346 34 342 14 Q378 56 366 96 Q384 88 386 70 Q404 112 374 132 Z;
+              M226 132 Q206 92 236 70 Q244 94 256 90 Q250 40 282 14 Q282 58 296 66 Q298 26 320 4 Q318 46 334 56 Q352 30 346 10 Q384 60 368 100 Q388 90 390 74 Q406 116 374 132 Z;
+              M226 132 Q212 86 240 64 Q240 92 254 94 Q246 46 278 18 Q276 62 292 70 Q292 30 316 6 Q314 48 330 60 Q346 34 342 14 Q378 56 366 96 Q384 88 386 70 Q404 112 374 132 Z"/>
+          </path>
+          <path d="M248 132 Q240 102 260 88 Q264 104 274 104 Q272 70 296 50 Q298 82 312 90 Q324 72 322 58 Q350 92 340 132 Z" fill="#f5c400">
+            <animate attributeName="opacity" values="1;0.75;1" dur="0.4s" repeatCount="indefinite"/>
+          </path>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- Smoke gathering at the ceiling -->
+  <g fill="#6f6f6f" opacity="0.55">
+    <animate attributeName="opacity" values="0.55;0.85" begin="10s" dur="3s" fill="freeze"/>
+    <circle cx="300" cy="40" r="26"/><circle cx="270" cy="22" r="22"/><circle cx="330" cy="20" r="24"/>
+    <circle cx="230" cy="14" r="20"/><circle cx="370" cy="34" r="20"/><circle cx="196" cy="8" r="16"/>
+    <animateTransform attributeName="transform" type="translate" values="0 2;-4 -2;0 2" dur="3s" repeatCount="indefinite"/>
+  </g>
+
+  <!-- Alert Girl in a dramatic lunge, aiming the extinguisher at the fire -->
+  <g transform="translate(30,22) scale(0.78)">
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Lunge: back leg stretched behind, front leg bent toward the fire -->
+    <path d="M92 230 H120 L80 288 H50 Z" fill="#232327"/>
+    <path d="M120 230 H150 L184 288 H150 Z" fill="#232327"/>
+    <path d="M100 246 L70 284 M140 246 L166 284" fill="none" stroke="#3a3a40" stroke-width="2"/>
+    <path d="M52 288 H84 V298 H44 Q44 290 52 288 Z" fill="#ffffff"/>
+    <path d="M148 288 H184 Q192 290 192 298 H148 Z" fill="#ffffff"/>
+
+    <!-- Upper body leaning forward into the action -->
+    <g transform="rotate(9 120 232)">
+      <!-- Hair streaming back -->
+      <path d="M72 96 Q46 92 30 104 Q50 104 58 112 Q40 118 34 132 Q56 124 70 124 Z" fill="#d8452c"/>
+      
+    <!-- Light blue top under an open black zip hoodie -->
+    <path d="M100 138 H140 L144 234 H96 Z" fill="#b9cde0"/>
+    <path d="M78 158 Q78 140 98 136 L106 140 L100 236 H84 Z" fill="#1f1f22"/>
+    <path d="M162 158 Q162 140 142 136 L134 140 L140 236 H156 Z" fill="#1f1f22"/>
+    <!-- Hood bunched behind her neck, drawstrings -->
+    <path d="M100 136 Q120 150 140 136 Q120 142 100 136 Z" fill="#1f1f22"/>
+    <path d="M104 144 V166 M136 144 V166" fill="none" stroke="#e8e8e8" stroke-width="2.5"/>
+    <!-- Ribbed hem -->
+    <path d="M84 230 H100 M140 230 H156" fill="none" stroke="#55555c" stroke-width="3"/>
+    <!-- Little black shoulder bag strap -->
+    <path d="M100 140 L146 222" fill="none" stroke="#111" stroke-width="3"/>
+      <!-- Extinguisher braced at her hip -->
+      <rect x="112" y="178" width="30" height="64" rx="12" fill="#e2312b"/>
+      <rect x="118" y="196" width="18" height="16" rx="2" fill="#ffffff" stroke-width="2.5"/>
+      <rect x="116" y="166" width="22" height="14" rx="3" fill="#1e1e1e"/>
+      <path d="M138 168 L156 160" fill="none" stroke-width="5"/>
+      <!-- Hose running up to the nozzle in her front hand -->
+      <path d="M138 176 Q182 196 200 150" fill="none" stroke-width="5"/>
+      <!-- Back arm squeezing the handle -->
+      
+    <path d="M80 152 Q84 180 132 166" fill="none" stroke-width="22"/>
+    <path d="M80 152 Q84 180 132 166" fill="none" stroke="#1f1f22" stroke-width="13"/>
+    <ellipse cx="134" cy="166" rx="9" ry="10" fill="#f6cfae"/>
+      
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+      <!-- Fierce, determined face -->
+      <path d="M95 80 Q104 82 113 88" fill="none" stroke-width="4"/>
+      <path d="M127 88 Q136 82 146 80" fill="none" stroke-width="4"/>
+      
+    <ellipse cx="104" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <ellipse cx="136" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <circle cx="108" cy="97" r="3.5" fill="#1e1e1e" stroke="none"/>
+    <circle cx="140" cy="97" r="3.5" fill="#1e1e1e" stroke="none"/>
+      <path d="M97 92 Q104 89 111 92" fill="none" stroke-width="3.5"/>
+      <path d="M129 92 Q136 89 143 92" fill="none" stroke-width="3.5"/>
+      <rect x="108" y="114" width="24" height="9" rx="3" fill="#ffffff" stroke-width="3"/>
+      <line x1="108" y1="118.5" x2="132" y2="118.5" stroke-width="1.5"/>
+      <line x1="116" y1="114" x2="116" y2="123" stroke-width="1.5"/>
+      <line x1="124" y1="114" x2="124" y2="123" stroke-width="1.5"/>
+      <!-- Front arm thrust out, aiming the nozzle -->
+      
+    <path d="M160 152 Q186 156 202 146" fill="none" stroke-width="22"/>
+    <path d="M160 152 Q186 156 202 146" fill="none" stroke="#1f1f22" stroke-width="13"/>
+    <ellipse cx="204" cy="144" rx="9" ry="10" fill="#f6cfae"/>
+      <path d="M208 136 L236 120 L242 130 L214 148 Z" fill="#1e1e1e"/>
+      <!-- Once the fire gets big (after 10 seconds) she starts spraying it -->
+      <g opacity="0">
+        <animate attributeName="opacity" values="0;1" begin="10.5s" dur="0.6s" fill="freeze"/>
+        <path d="M240 124 L410 26 Q440 78 418 128 Z" fill="#ffffff" opacity="0.85" stroke-width="2.5">
+          <animate attributeName="d" dur="0.35s" repeatCount="indefinite" values="
+            M240 124 L410 26 Q440 78 418 128 Z;
+            M240 124 L414 20 Q446 80 422 134 Z;
+            M240 124 L410 26 Q440 78 418 128 Z"/>
+        </path>
+        <path d="M240 124 L400 50 Q412 80 404 104 Z" fill="#dff1fb" opacity="0.9"/>
+        <g fill="#ffffff" stroke-width="2.5">
+          <circle cx="300" cy="80" r="12"/><circle cx="338" cy="60" r="15"/><circle cx="372" cy="96" r="14"/>
+          <circle cx="396" cy="44" r="13"/><circle cx="410" cy="112" r="12"/><circle cx="352" cy="112" r="10"/>
+          <animateTransform attributeName="transform" type="translate" values="0 0;6 -4;0 0" dur="0.4s" repeatCount="indefinite"/>
+        </g>
+      </g>
+      <!-- First little puff just starting to come out -->
+      <g fill="#ffffff" stroke-width="2.5">
+        <circle cx="250" cy="118" r="6"/><circle cx="262" cy="110" r="4.5"/><circle cx="258" cy="126" r="4"/>
+        <animate attributeName="opacity" values="0.4;1;0.4" dur="0.8s" repeatCount="indefinite"/>
+      </g>
+    </g>
+  </g>
+  </g>
+  <!-- Action lines behind her -->
+  <g stroke="#1e1e1e" stroke-width="3" stroke-linecap="round" opacity="0.7">
+    <line x1="66" y1="96" x2="84" y2="100"/><line x1="62" y1="112" x2="84" y2="114"/><line x1="66" y1="128" x2="82" y2="128"/>
+  </g>
+
+  <!-- Orange glow over the room as the fire grows -->
+  <rect x="0" y="0" width="400" height="270" fill="#ff7a1a" opacity="0">
+    <animate attributeName="opacity" values="0;0.22" begin="10s" dur="3s" fill="freeze"/>
+  </rect>
+
+  <!-- Camera overlay: label, LIVE dot, scan lines -->
+  <g font-family="Courier New, monospace" font-weight="700" font-size="13">
+    <rect x="8" y="8" width="152" height="22" rx="3" fill="rgba(0,0,0,0.55)"/>
+    <text x="16" y="23" fill="#ffffff">CAM 1 · KITCHEN</text>
+    <rect x="8" y="240" width="64" height="22" rx="3" fill="rgba(0,0,0,0.55)"/>
+    <circle cx="22" cy="251" r="5" fill="#ff3b30"><animate attributeName="opacity" values="1;0.2;1" dur="1s" repeatCount="indefinite"/></circle>
+    <text x="32" y="256" fill="#ffffff">LIVE</text>
+  </g>
+</svg>
+        <div class="feed-clock" id="feedClock"></div>
+      </div>
+      <p class="feed-note">Smoke detected near the stove. Call emergency services if anyone is in danger.</p>
+      <button class="primary feed-911" onclick="showToast('Calling 911, but not really \'cause it is just a demo', 8, FACE_FIRE)">Call Emergency Services</button>
+    </div>
+  </aside>
+
   <!-- The toaster message (starts hidden) -->
   <div class="toast" id="toast"></div>
 
@@ -1518,11 +1754,14 @@
       {
         type: "alert",
         name: "Smoke alarm",
+        camera: true,    // has a security camera, so "View Security Feed" works
         mascot: "smoke",   // show this Alert Girl picture
         title: "ALERT",
         message: "Smoke Alarm triggered, possible fire.",
         buttons: [
-          { label: "Snooze alarm for 15 minutes", style: "primary",   action: "snooze" },
+          { label: "Call Emergency Services",     style: "primary",   action: "call911" },
+          { label: "View Security Feed",          style: "secondary", action: "securityFeed" },
+          { label: "Snooze alarm for 15 minutes", style: "secondary", action: "snooze" },
           { label: "Dismiss",                     style: "secondary", action: "dismiss" }
         ]
       },
@@ -1537,7 +1776,8 @@
         buttons: [
           { label: "Call Plumber",          style: "primary",   action: "callPlumber" },
           { label: "Dismiss",               style: "secondary", action: "dismiss" },
-          { label: "Snooze for 15 minutes", style: "secondary", action: "snooze" }
+          { label: "Snooze for 15 minutes", style: "secondary", action: "snooze" },
+          { label: "View Security Feed",    style: "unavailable", action: "securityFeed" }
         ]
       },
       {
@@ -1551,7 +1791,8 @@
         buttons: [
           { label: "Dismiss",               style: "secondary", action: "dismiss" },
           { label: "Snooze for 15 minutes", style: "secondary", action: "snooze" },
-          { label: "Maximize Air Quality",  style: "primary",   action: "maximizeAir" }
+          { label: "Maximize Air Quality",  style: "primary",   action: "maximizeAir" },
+          { label: "View Security Feed",    style: "unavailable", action: "securityFeed" }
         ]
       }
     ];
@@ -1951,6 +2192,24 @@
     <path d="M112 118 Q120 122 128 118" fill="none" stroke-width="3.5"/>
     <circle cx="93" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.6"/>
     <circle cx="147" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.6"/></g><g font-family="Arial, sans-serif" font-weight="900" fill="#2f78c9" stroke="#1e1e1e" stroke-width="1"><text x="160" y="80" font-size="18">z</text><text x="172" y="64" font-size="24">Z</text></g></svg>`;
+    const FACE_FIRE     = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="56 18 140 128" class="face-icon" role="img" aria-label="Alert Girl wearing a firefighter helmet"><g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/><path d="M96 84 Q104 80 112 83" fill="none" stroke-width="3.5"/>
+    <path d="M128 83 Q136 80 144 84" fill="none" stroke-width="3.5"/>
+    <ellipse cx="104" cy="96" rx="3.5" ry="3.5" fill="#1e1e1e" stroke="none"/>
+    <ellipse cx="136" cy="96" rx="3.5" ry="3.5" fill="#1e1e1e" stroke="none"/>
+    <path d="M110 116 Q120 122 130 116" fill="none" stroke-width="3.5"/>
+    <!-- Firefighter helmet -->
+    <path d="M70 78 Q66 30 120 26 Q174 30 170 78 Z" fill="#d93a3f"/>
+    <path d="M58 80 Q120 64 182 80 Q184 90 172 88 Q120 76 68 88 Q56 90 58 80 Z" fill="#b52d31"/>
+    <path d="M120 28 V70" fill="none" stroke-width="3"/>
+    <path d="M106 36 H134 V58 Q120 66 106 58 Z" fill="#f5c400" stroke-width="3"/>
+    <text x="120" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="900" fill="#1e1e1e" stroke="none">1</text>
+  </g></svg>`;
     const FACE_PHONE    = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="56 34 140 112" class="face-icon" role="img" aria-label="Alert Girl on the phone"><g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
     <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
     <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
@@ -1971,8 +2230,35 @@
       showToast("Pretend Progressive Website opened in new tab", 6, FACE_WHISPER);
     }
 
+    function startClaim() {
+      showToast("Starting Claim with Progressive.", 6, FACE_HAPPY);
+    }
+
     function startCall() {
       showToast("Pretend this started a call to Progressive.", 6, FACE_WHISPER);
+    }
+
+    // ---------- PRETEND SECURITY FEED ----------
+    let feedClockTimer = null;
+
+    function openFeed() {
+      document.getElementById("feedPanel").classList.add("open");
+      // Restart the camera animation, so the fire grows 10 seconds after opening
+      document.getElementById("feedScene").setCurrentTime(0);
+      updateFeedClock();
+      clearInterval(feedClockTimer);
+      feedClockTimer = setInterval(updateFeedClock, 1000);   // tick like a real camera
+    }
+
+    function closeFeed() {
+      document.getElementById("feedPanel").classList.remove("open");
+      clearInterval(feedClockTimer);
+    }
+
+    function updateFeedClock() {
+      const now = new Date();
+      document.getElementById("feedClock").textContent =
+        now.toLocaleDateString() + " " + now.toLocaleTimeString();
     }
 
     // ---------- PRETEND CHATBOT ----------
@@ -2024,6 +2310,20 @@
       // "Mark as replaced" keeps the event in the queue until the photo is uploaded.
       if (action === "replaced") {
         openUpload(entry);
+        return;
+      }
+      // Calling 911 keeps the alert in the queue, since the emergency isn't over yet.
+      if (action === "call911") {
+        showToast("Calling 911, but not really 'cause it is just a demo", 8, FACE_FIRE);
+        return;
+      }
+      // Security feed: only works for alerts that have a camera.
+      if (action === "securityFeed") {
+        if (info.camera) {
+          openFeed();
+        } else {
+          showToast("No camera available", 4, FACE_CONFUSED);
+        }
         return;
       }
       // "Schedule Change" keeps it in the queue until an appointment is booked.
