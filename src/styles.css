@@ -120,6 +120,12 @@ select {
   font-size: 0.9rem;
 }
 
+/* Dropdown lists: match the theme (browsers otherwise often draw them light). */
+option {
+  background: var(--surface);
+  color: var(--text);
+}
+
 input[type='checkbox'],
 input[type='radio'] {
   accent-color: var(--accent);
@@ -148,4 +154,124 @@ nav:has(+ main > app-dashboard-home) {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* Toolbar of flat sections divided by thin lines, filling the bar edge to edge.
+     <div class="toolbar">
+       <div class="toolbar-group">…sections…</div>          left
+       <div class="toolbar-group end">…sections…</div>      right (open space between)
+     </div>
+   Every section draws a line on its left and top, and the toolbar clips the ones on its outer
+   edges, so the dividers stay right however the sections wrap onto more rows. */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.toolbar-group {
+  display: flex;
+  /* Grows to share the free space; when too wide for the bar it takes its own row
+     and shrinks to fit, wrapping its sections. */
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
+  box-shadow: 0 -1px 0 var(--border);
+}
+
+.toolbar-group.end {
+  justify-content: flex-end;
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  box-shadow: -1px 0 0 var(--border), 0 -1px 0 var(--border);
+  color: var(--text);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+button.toolbar-section,
+a.toolbar-section {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 120ms;
+}
+
+button.toolbar-section:hover,
+a.toolbar-section:hover {
+  background: var(--surface-hover);
+}
+
+.toolbar-section:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.toolbar-section.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.toolbar-section.primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.toolbar-section.primary:hover {
+  background: var(--accent-hover);
+}
+
+.toolbar-section.icon {
+  padding: 0 0.8rem;
+}
+
+.toolbar-section.icon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Dropdowns and date pickers inside a section are flat; the section is the "box".
+   (Number inputs keep their border so the field is easy to spot.) Backgrounds are solid
+   rather than transparent so the open dropdown list follows the theme too. */
+.toolbar-section select,
+.toolbar-section input[type='datetime-local'] {
+  height: 2rem;
+  border: 0;
+  background: var(--surface);
+}
+
+.toolbar-section input[type='number'] {
+  height: 2rem;
+}
+
+/* Phones: each group gets its own full row(s) and sections stretch to fill them,
+   so every row is evenly divided with no half-empty rows. */
+@media (max-width: 600px) {
+  .toolbar-group {
+    flex-basis: 100%;
+  }
+
+  .toolbar-section {
+    flex: 1 1 auto;
+  }
 }

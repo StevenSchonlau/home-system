@@ -4,7 +4,9 @@
   @if (tile(); as tile) {
     <h1 id="graph-title">{{ title() }}</h1>
     <div class="toolbar">
-      <app-time-range-picker />
+      <div class="toolbar-group">
+        <app-time-range-picker />
+      </div>
     </div>
     <div class="card">
       <app-sensor-chart class="chart" [fields]="tile.fields" [kind]="kind(tile)" />

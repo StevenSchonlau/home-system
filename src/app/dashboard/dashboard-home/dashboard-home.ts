@@ -1,5 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../account.service';
 import { CalendarWidget } from '../../calendar/calendar-widget';
@@ -38,6 +38,15 @@ export class DashboardHome {
   protected readonly importError = signal('');
   protected readonly display = tileDisplay;
 
+  // "Good morning, Steven". Rechecked every minute so it changes over while the page is open.
+  private readonly now = signal(new Date());
+  protected readonly greeting = computed(() => `${partOfDay(this.now())}, ${this.accounts.selected()}`);
+
+  constructor() {
+    const timer = setInterval(() => this.now.set(new Date()), 60_000);
+    inject(DestroyRef).onDestroy(() => clearInterval(timer));
+  }
+
   protected drop(event: CdkDragDrop<unknown>): void {
     this.configService.moveTile(event.previousIndex, event.currentIndex);
   }
@@ -71,4 +80,13 @@ export class DashboardHome {
       this.importError.set('That file is not a valid dashboard config (expected { "tiles": [...] }).');
     }
   }
+}
+
+// Morning 5:00–11:59, afternoon 12:00–16:59, evening otherwise.
+function partOfDay(date: Date): string {
+  const hour = date.getHours();
+  if (hour >= 5 && hour < 12) {
+    return 'Good morning';
+  }
+  return hour >= 12 && hour < 17 ? 'Good afternoon' : 'Good evening';
 }
