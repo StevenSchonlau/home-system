@@ -17,6 +17,10 @@ export const routes: Routes = [
     loadComponent: () => import('./dashboard/dashboard-create/dashboard-create').then((m) => m.DashboardCreate),
   },
   {
+    path: 'dashboard/tile/:id/edit',
+    loadComponent: () => import('./dashboard/dashboard-create/dashboard-create').then((m) => m.DashboardCreate),
+  },
+  {
     path: 'dashboard/tile/:id',
     loadComponent: () => import('./dashboard/dashboard-graph/dashboard-graph').then((m) => m.DashboardGraph),
   }

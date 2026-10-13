@@ -2,13 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, Observable, of, switchMap, timer } from 'rxjs';
+import { AccountService } from './account.service';
 import { createMockApi } from './sensor-data.mock';
 
 // TODO: replace with the real endpoint, then set USE_MOCK_DATA to false.
 export const API_URL = '/Pioneer';
 export const USE_MOCK_DATA = false;
-// Only readings for this account are used (exact, case-sensitive match).
-export const ACCOUNT_NAME = 'Steven';
+// The account to show is picked in the dashboard (AccountService); its default is DEFAULT_ACCOUNT_NAME there.
 const POLL_INTERVAL_MS = 3_000;
 
 // One row from the API, exactly as the schema names it.
@@ -36,14 +36,16 @@ export interface SensorSeries {
 @Injectable({ providedIn: 'root' })
 export class SensorDataService {
   private readonly http = inject(HttpClient);
+  private readonly accounts = inject(AccountService);
   private readonly readings = signal<SensorReading[]>([]);
   readonly error = signal('');
 
-  // Account-filtered readings grouped into one series per sensorType + DataKey.
+  // Readings for the selected account (exact, case-sensitive match), grouped into one series per sensorType + DataKey.
   readonly series = computed(() => {
     const byKey = new Map<string, SensorSeries>();
+    const account = this.accounts.selected();
     for (const reading of this.readings()) {
-      if (reading.accountName !== ACCOUNT_NAME) {
+      if (reading.accountName !== account) {
         continue;
       }
       const key = seriesKey(reading.sensorType, reading.dataKey);
@@ -92,6 +94,7 @@ export class SensorDataService {
         if (readings) {
           this.error.set('');
           this.readings.set(readings);
+          this.accounts.available.set([...new Set(readings.map((r) => r.accountName))].sort());
         }
       });
   }

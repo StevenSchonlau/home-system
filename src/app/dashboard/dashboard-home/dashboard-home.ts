@@ -1,17 +1,31 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AccountService } from '../../account.service';
 import { CalendarWidget } from '../../calendar/calendar-widget';
 import { SensorDataService } from '../../sensor-data.service';
 import { DashboardConfigService } from '../dashboard-config.service';
-import { DashboardConfig } from '../dashboard.models';
+import { DashboardConfig, tileDisplay } from '../dashboard.models';
 import { DashboardTile } from '../dashboard-tile/dashboard-tile';
 import { SensorChart } from '../tile-content/sensor-chart';
 import { StateEntries } from '../tile-content/state-entries';
+import { StatsSummary } from '../tile-content/stats-summary';
 import { TimeRangePicker } from '../time-range-picker/time-range-picker';
+import { AccountPicker } from '../account-picker';
 
 @Component({
-  imports: [CdkDropList, CdkDrag, RouterLink, DashboardTile, StateEntries, SensorChart, TimeRangePicker, CalendarWidget],
+  imports: [
+    CdkDropList,
+    CdkDrag,
+    RouterLink,
+    DashboardTile,
+    StateEntries,
+    StatsSummary,
+    SensorChart,
+    TimeRangePicker,
+    CalendarWidget,
+    AccountPicker,
+  ],
   selector: 'app-dashboard-home',
   styleUrl: './dashboard-home.css',
   templateUrl: './dashboard-home.html',
@@ -19,8 +33,10 @@ import { TimeRangePicker } from '../time-range-picker/time-range-picker';
 export class DashboardHome {
   protected readonly configService = inject(DashboardConfigService);
   protected readonly sensorData = inject(SensorDataService);
+  private readonly accounts = inject(AccountService);
   protected readonly editing = signal(false);
   protected readonly importError = signal('');
+  protected readonly display = tileDisplay;
 
   protected drop(event: CdkDragDrop<unknown>): void {
     this.configService.moveTile(event.previousIndex, event.currentIndex);
@@ -31,7 +47,7 @@ export class DashboardHome {
     const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'dashboard-config.json';
+    link.download = `dashboard-${this.accounts.selected()}.json`;
     link.click();
     URL.revokeObjectURL(url);
   }

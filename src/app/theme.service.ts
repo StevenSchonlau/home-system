@@ -35,7 +35,8 @@ function initialTheme(): Theme {
   } catch {
     // Fall back to the system setting.
   }
-  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  // matchMedia is missing in some environments (e.g. jsdom in unit tests).
+  return globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 function applyTheme(theme: Theme): void {

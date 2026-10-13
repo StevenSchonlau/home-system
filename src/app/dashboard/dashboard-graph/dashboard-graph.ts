@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SensorDataService } from '../../sensor-data.service';
 import { DashboardConfigService } from '../dashboard-config.service';
+import { chartKind } from '../dashboard.models';
 import { SensorChart } from '../tile-content/sensor-chart';
 import { TimeRangePicker } from '../time-range-picker/time-range-picker';
 
@@ -16,6 +17,7 @@ export class DashboardGraph {
   private readonly configService = inject(DashboardConfigService);
   private readonly sensorData = inject(SensorDataService);
   private readonly tileId = inject(ActivatedRoute).snapshot.paramMap.get('id');
+  protected readonly kind = chartKind;
 
   protected readonly tile = computed(() =>
     this.configService.config().tiles.find((tile) => tile.id === this.tileId),

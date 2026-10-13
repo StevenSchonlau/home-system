@@ -1,73 +1,144 @@
 <section aria-labelledby="dashboard-title">
   <h1 id="dashboard-title">Dashboard</h1>
 
-  <div class="toolbar">
-    <app-time-range-picker />
-    <div class="actions">
-      <button
-        type="button"
-        class="btn"
-        [class.btn-primary]="editing()"
-        (click)="editing.set(!editing())"
-        [attr.aria-pressed]="editing()"
-      >
-        {{ editing() ? 'Done' : 'Reorder' }}
-      </button>
-      <button type="button" class="btn" (click)="exportConfig()">Export</button>
-      <button type="button" class="btn" (click)="fileInput.click()">Import</button>
-      <input #fileInput type="file" accept="application/json,.json" hidden (change)="importConfig($event)" />
-      <a class="btn btn-primary" routerLink="/dashboard/create">+ Add tile</a>
-      <a class="btn" routerLink="/calendar">Open calendar</a>
-    </div>
-  </div>
-
-  @if (importError()) {
-    <p class="error" role="alert">{{ importError() }}</p>
-  }
-  @if (sensorData.error()) {
-    <p class="error" role="alert">{{ sensorData.error() }}</p>
-  }
-
-  <app-calendar-widget class="calendar-widget" />
-
-  @if (configService.config().tiles.length === 0) {
-    <p class="empty">No tiles yet. Use <strong>+ Add tile</strong> or <strong>Import</strong> to get started.</p>
-  }
-
-  <div
-    class="grid"
-    [class.editing]="editing()"
-    cdkDropList
-    cdkDropListOrientation="mixed"
-    [cdkDropListDisabled]="!editing()"
-    (cdkDropListDropped)="drop($event)"
-  >
-    @for (tile of configService.config().tiles; track tile.id) {
-      <app-dashboard-tile cdkDrag [size]="tile.size">
-        @if (editing()) {
+  <div class="layout">
+    <div class="content">
+      <div class="toolbar">
+        <div class="filters-bar">
+          <app-account-picker />
+          <app-time-range-picker />
+        </div>
+        <!-- Flat sections flush to the toolbar's right edge, divided by lines. -->
+        <div class="actions">
           <button
             type="button"
-            class="btn btn-danger remove"
-            aria-label="Remove tile"
-            (click)="configService.removeTile(tile.id)"
+            class="section"
+            [class.active]="editing()"
+            (click)="editing.set(!editing())"
+            [attr.aria-pressed]="editing()"
           >
-            ×
+            {{ editing() ? 'Done' : 'Edit' }}
           </button>
+          <button
+            type="button"
+            class="section icon"
+            (click)="exportConfig()"
+            aria-label="Export layout"
+            title="Export layout"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="section icon"
+            (click)="fileInput.click()"
+            aria-label="Import layout"
+            title="Import layout"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 15V4m0 0L8 8m4-4 4 4M5 19h14" />
+            </svg>
+          </button>
+          <input
+            #fileInput
+            type="file"
+            accept="application/json,.json"
+            hidden
+            (change)="importConfig($event)"
+          />
+          <a class="section primary" routerLink="/dashboard/create">+ Add tile</a>
+        </div>
+      </div>
+
+      @if (importError()) {
+        <p class="error" role="alert">{{ importError() }}</p>
+      }
+      @if (sensorData.error()) {
+        <p class="error" role="alert">{{ sensorData.error() }}</p>
+      }
+
+      @if (configService.config().tiles.length === 0) {
+        <p class="empty">
+          No tiles yet. Use <strong>+ Add tile</strong> or <strong>Import</strong> to get started.
+        </p>
+      }
+
+      <div
+        class="grid"
+        [class.editing]="editing()"
+        cdkDropList
+        cdkDropListOrientation="mixed"
+        [cdkDropListDisabled]="!editing()"
+        (cdkDropListDropped)="drop($event)"
+      >
+        @for (tile of configService.config().tiles; track tile.id) {
+          <app-dashboard-tile cdkDrag [size]="tile.size">
+            @if (editing()) {
+              <div class="tile-actions">
+                <a
+                  class="btn btn-icon"
+                  [routerLink]="['/dashboard/tile', tile.id, 'edit']"
+                  aria-label="Edit tile"
+                  title="Edit tile"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" />
+                  </svg>
+                </a>
+                <button
+                  type="button"
+                  class="btn btn-icon btn-danger remove"
+                  aria-label="Remove tile"
+                  title="Remove tile"
+                  (click)="configService.removeTile(tile.id)"
+                >
+                  ×
+                </button>
+              </div>
+            }
+            <!-- Disabled while editing so dragging doesn't open the graph. -->
+            <a
+              class="tile-link"
+              [routerLink]="['/dashboard/tile', tile.id]"
+              [attr.tabindex]="editing() ? -1 : null"
+              aria-label="Open graph"
+            >
+              @switch (display(tile)) {
+                @case ('line') {
+                  <app-sensor-chart [fields]="tile.fields" kind="line" />
+                }
+                @case ('bar') {
+                  <app-sensor-chart [fields]="tile.fields" kind="bar" />
+                }
+                @case ('pie') {
+                  <app-sensor-chart
+                    [fields]="tile.fields"
+                    kind="pie"
+                    [compact]="tile.size === '1x1'"
+                  />
+                }
+                @case ('stats') {
+                  <app-stats-summary [fields]="tile.fields" />
+                }
+                @default {
+                  <app-state-entries
+                    [fields]="tile.fields"
+                    [colorMode]="tile.colorMode ?? 'none'"
+                    [thresholds]="tile.thresholds ?? {}"
+                    [showTrend]="tile.showTrend ?? false"
+                  />
+                }
+              }
+            </a>
+          </app-dashboard-tile>
         }
-        <!-- Disabled while reordering so dragging doesn't open the graph. -->
-        <a
-          class="tile-link"
-          [routerLink]="['/dashboard/tile', tile.id]"
-          [attr.tabindex]="editing() ? -1 : null"
-          aria-label="Open graph"
-        >
-          @if (tile.size === '1x3' && tile.showGraph) {
-            <app-sensor-chart [fields]="tile.fields" />
-          } @else {
-            <app-state-entries [fields]="tile.fields" />
-          }
-        </a>
-      </app-dashboard-tile>
-    }
+      </div>
+    </div>
+
+    <aside class="sidebar" aria-label="Calendar">
+      <app-calendar-widget class="calendar-widget" />
+    </aside>
   </div>
 </section>
