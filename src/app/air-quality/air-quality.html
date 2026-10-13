@@ -1,8 +1,8 @@
 <section aria-labelledby="air-quality-title" [attr.aria-busy]="loading()">
-  <h1 id="air-quality-title">Air quality</h1>
+  <h1 id="air-quality-title">Air Quality</h1>
   <p>Current air quality estimates for your location.</p>
   <button type="button" (click)="loadAirQuality()" [disabled]="loading()">
-    {{ loading() ? 'Loading...' : 'Refresh air quality' }}
+    {{ loading() ? 'Loading...' : 'Refresh Air Quality' }}
   </button>
 
   @if (loading()) {
