@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alert Popup Demo</title>
+
+  <!-- ============ STYLE: how things look ============ -->
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f5f7;
+      padding: 40px 16px;
+      color: #222;
+    }
+    button {
+      font-size: 15px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 4px 4px 4px 0;
+    }
+
+    /* Two columns side by side; they stack on narrow screens like phones */
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 900px;
+    }
+    .columns h2 { margin: 0 0 12px; font-size: 20px; }
+
+    /* The lists of reminders and alerts you can trigger */
+    .alert-list { list-style: none; padding: 0; margin: 0; }
+    .alert-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    .trigger-btn { background: #333; color: white; white-space: nowrap; }
+
+    /* The popup box. Hidden until we add the "show" class. */
+    .alert-popup {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 360px;
+      max-width: calc(100% - 32px);
+      background: white;
+      border-left: 6px solid #e5484d;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      padding: 16px;
+      display: none;
+    }
+    .alert-popup.show { display: block; }
+    .alert-popup h3 { margin: 0 0 6px; }
+    .alert-popup p  { margin: 0 0 12px; line-height: 1.4; }
+
+    /* Button colors */
+    .primary   { background: #e5484d; color: white; }
+    .secondary { background: #e8e8e8; color: #222; }
+
+    /* The toaster message: a small dark bar at the top of the screen */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      max-width: calc(100% - 32px);
+      display: none;
+    }
+    .toast.show { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- ============ CONTENT: what's on the page ============ -->
+  <h1>Alert Popup Demo</h1>
+  <p>Click "Trigger" to pretend an event just happened.</p>
+
+  <!-- Two columns. The lists get filled in by the script below. -->
+  <div class="columns">
+    <section>
+      <h2>Reminders</h2>
+      <ul class="alert-list" id="reminderList"></ul>
+    </section>
+    <section>
+      <h2>Alerts</h2>
+      <ul class="alert-list" id="alertList"></ul>
+    </section>
+  </div>
+
+  <!-- The popup itself (starts hidden) -->
+  <div class="alert-popup" id="alertPopup">
+    <h3 id="alertTitle"></h3>
+    <p id="alertMessage"></p>
+    <div id="alertButtons"></div>
+  </div>
+
+  <!-- The toaster message (starts hidden) -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ============ SCRIPT: what things do ============ -->
+  <script>
+    // ---------- THE LIST OF ALERTS ----------
+    // To add a new alert, copy one of these blocks and change the words.
+    // Each alert has:
+    //   type      - "reminder" (left column) or "alert" (right column)
+    //   name      - what shows in the list, and in the snooze message
+    //   title, message, and a list of buttons.
+    // Each button has a label, a style ("primary" = red, "secondary" = gray),
+    // and an action (what happens when it's clicked).
+    const alerts = [
+      {
+        type: "reminder",
+        name: "Fire extinguisher",
+        title: "Reminder",
+        message: "Fire Extinguisher in the garage needs to be replaced.",
+        buttons: [
+          { label: "Mark as replaced", style: "primary",   action: "replaced" },
+          { label: "Dismiss",          style: "secondary", action: "dismiss" }
+        ]
+      },
+      {
+        type: "alert",
+        name: "Smoke alarm",
+        title: "ALERT",
+        message: "Smoke Alarm triggered, possible fire.",
+        buttons: [
+          { label: "Snooze alarm for 15 minutes", style: "primary",   action: "snooze" },
+          { label: "Dismiss",                     style: "secondary", action: "dismiss" }
+        ]
+      },
+      {
+        type: "alert",
+        name: "Water level",
+        title: "Water Level High in Crock",
+        message: "The water level in your crock is high indicating the potential for flooding. " +
+                 "Please check your sump-pump is working properly. " +
+                 "You may want to move items which are vulnerable to water damage away from the crock.",
+        buttons: [
+          { label: "Call Plumber",          style: "primary",   action: "callPlumber" },
+          { label: "Dismiss",               style: "secondary", action: "dismiss" },
+          { label: "Snooze for 15 minutes", style: "secondary", action: "snooze" }
+        ]
+      }
+    ];
+
+    // ---------- BUILD THE LIST ON THE PAGE ----------
+    // For each alert above, add a row with its name and a "Trigger" button,
+    // in the Reminders column or the Alerts column depending on its type.
+    alerts.forEach(function (alertInfo) {
+      const listId = alertInfo.type === "reminder" ? "reminderList" : "alertList";
+      const list = document.getElementById(listId);
+      const row = document.createElement("li");
+
+      const label = document.createElement("span");
+      label.textContent = alertInfo.name;
+
+      const button = document.createElement("button");
+      button.className = "trigger-btn";
+      button.textContent = "Trigger";
+      button.onclick = function () { showAlert(alertInfo); };
+
+      row.appendChild(label);
+      row.appendChild(button);
+      list.appendChild(row);
+    });
+
+    // ---------- SHOW AND HIDE THE POPUP ----------
+    function showAlert(alertInfo) {
+      document.getElementById("alertTitle").textContent = alertInfo.title;
+      document.getElementById("alertMessage").textContent = alertInfo.message;
+
+      // Remove any old buttons, then add this alert's buttons.
+      const buttonArea = document.getElementById("alertButtons");
+      buttonArea.innerHTML = "";
+      alertInfo.buttons.forEach(function (b) {
+        const button = document.createElement("button");
+        button.className = b.style;
+        button.textContent = b.label;
+        button.onclick = function () { handleAction(b.action, alertInfo); };
+        buttonArea.appendChild(button);
+      });
+
+      document.getElementById("alertPopup").classList.add("show");
+    }
+
+    function hideAlert() {
+      document.getElementById("alertPopup").classList.remove("show");
+    }
+
+    // ---------- TOASTER MESSAGE ----------
+    // Shows a small message at the top of the screen for a number of seconds.
+    let toastTimer;
+    function showToast(text, seconds) {
+      const toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);  // if a toast is already showing, restart its timer
+      toastTimer = setTimeout(function () {
+        toast.classList.remove("show");
+      }, seconds * 1000);
+    }
+
+    // ---------- WHAT EACH BUTTON DOES ----------
+    const SNOOZE_MINUTES = 15;
+
+    function handleAction(action, alertInfo) {
+      hideAlert();  // every button closes the popup first
+
+      if (action === "callPlumber") {
+        showToast("Contacting a local plumber now. Updates will be sent to your phone.", 10);
+      }
+      else if (action === "snooze") {
+        // e.g. "Smoke alarm alerts paused for 15 minutes"
+        showToast(alertInfo.name + " alerts paused for " + SNOOZE_MINUTES + " minutes", 5);
+        // Show the same alert again after the snooze time.
+        // minutes x 60 seconds x 1000 milliseconds
+        setTimeout(function () { showAlert(alertInfo); }, SNOOZE_MINUTES * 60 * 1000);
+      }
+      else if (action === "replaced") {
+        showToast("Marked as replaced. Thanks!", 5);
+      }
+      // "dismiss" needs nothing extra: the popup is already closed.
+    }
+  </script>
+
+</body>
+</html>
