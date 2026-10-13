@@ -41,7 +41,9 @@
   </fieldset>
 
   <div class="actions">
-    <button type="button" (click)="create()" [disabled]="selected().length === 0">Create tile</button>
-    <a routerLink="/dashboard">Cancel</a>
+    <button type="button" class="btn btn-primary" (click)="create()" [disabled]="selected().length === 0">
+      Create tile
+    </button>
+    <a class="btn" routerLink="/dashboard">Cancel</a>
   </div>
 </section>

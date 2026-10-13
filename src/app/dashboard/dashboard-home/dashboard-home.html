@@ -2,13 +2,22 @@
   <h1 id="dashboard-title">Dashboard</h1>
 
   <div class="toolbar">
-    <button type="button" (click)="editing.set(!editing())" [attr.aria-pressed]="editing()">
-      {{ editing() ? 'Done' : 'Reorder tiles' }}
-    </button>
-    <a class="button" routerLink="/dashboard/create">Add tile</a>
-    <button type="button" (click)="exportConfig()">Export layout</button>
-    <button type="button" (click)="fileInput.click()">Import layout</button>
-    <input #fileInput type="file" accept="application/json,.json" hidden (change)="importConfig($event)" />
+    <app-time-range-picker />
+    <div class="actions">
+      <button
+        type="button"
+        class="btn"
+        [class.btn-primary]="editing()"
+        (click)="editing.set(!editing())"
+        [attr.aria-pressed]="editing()"
+      >
+        {{ editing() ? 'Done' : 'Reorder' }}
+      </button>
+      <button type="button" class="btn" (click)="exportConfig()">Export</button>
+      <button type="button" class="btn" (click)="fileInput.click()">Import</button>
+      <input #fileInput type="file" accept="application/json,.json" hidden (change)="importConfig($event)" />
+      <a class="btn btn-primary" routerLink="/dashboard/create">+ Add tile</a>
+    </div>
   </div>
 
   @if (importError()) {
@@ -16,6 +25,10 @@
   }
   @if (sensorData.error()) {
     <p class="error" role="alert">{{ sensorData.error() }}</p>
+  }
+
+  @if (configService.config().tiles.length === 0) {
+    <p class="empty">No tiles yet. Use <strong>+ Add tile</strong> or <strong>Import</strong> to get started.</p>
   }
 
   <div
@@ -31,7 +44,7 @@
         @if (editing()) {
           <button
             type="button"
-            class="remove"
+            class="btn btn-danger remove"
             aria-label="Remove tile"
             (click)="configService.removeTile(tile.id)"
           >

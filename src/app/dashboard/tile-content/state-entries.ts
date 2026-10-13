@@ -1,17 +1,15 @@
-import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, input } from '@angular/core';
-import { SensorDataService } from '../../sensor-data.service';
+import { isNumeric, SensorDataService } from '../../sensor-data.service';
 
 // Shows the latest value of each chosen sensor series. Updates whenever new data arrives.
 @Component({
-  imports: [DecimalPipe],
   selector: 'app-state-entries',
   template: `
     <dl>
       @for (entry of entries(); track entry.key) {
         <div>
           <dt>{{ entry.label }}</dt>
-          <dd>{{ entry.value === null ? '—' : (entry.value | number: '1.0-2') }}</dd>
+          <dd>{{ entry.value }}</dd>
         </div>
       }
     </dl>
@@ -29,7 +27,15 @@ export class StateEntries {
     this.fields().map((key) => ({
       key,
       label: this.sensorData.label(key),
-      value: this.sensorData.latest(key),
+      value: format(this.sensorData.latest(key)),
     })),
   );
+}
+
+// Numbers get at most 2 decimals; text is shown as-is.
+function format(value: string | null): string {
+  if (value === null) {
+    return '—';
+  }
+  return isNumeric(value) ? Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 }) : value;
 }

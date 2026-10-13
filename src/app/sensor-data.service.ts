@@ -5,11 +5,11 @@ import { catchError, Observable, of, switchMap, timer } from 'rxjs';
 import { createMockApi } from './sensor-data.mock';
 
 // TODO: replace with the real endpoint, then set USE_MOCK_DATA to false.
-export const API_URL = 'https://example.com/api/sensor-readings';
-export const USE_MOCK_DATA = true;
+export const API_URL = '/Pioneer';
+export const USE_MOCK_DATA = false;
 // Only readings for this account are used (exact, case-sensitive match).
-export const ACCOUNT_NAME = 'home';
-const POLL_INTERVAL_MS = 30_000;
+export const ACCOUNT_NAME = 'Steven';
+const POLL_INTERVAL_MS = 3_000;
 
 // One row from the API, exactly as the schema names it.
 export interface SensorReading {
@@ -17,13 +17,13 @@ export interface SensorReading {
   sensorType: string;
   dateTime: string; // ISO 8601
   accountName: string;
-  DataKey: string;
-  DataValue: number;
+  dataKey: string;
+  dataValue: string; // numeric, but the API returns it as a string
 }
 
 export interface SensorPoint {
   time: number; // epoch ms
-  value: number;
+  value: string;
 }
 
 // One selectable option for a tile: a unique sensorType + DataKey pair.
@@ -46,17 +46,18 @@ export class SensorDataService {
       if (reading.accountName !== ACCOUNT_NAME) {
         continue;
       }
-      const key = seriesKey(reading.sensorType, reading.DataKey);
+      const key = seriesKey(reading.sensorType, reading.dataKey);
       let series = byKey.get(key);
       if (!series) {
-        series = { key, label: `${reading.sensorType} – ${reading.DataKey}`, points: [] };
+        series = { key, label: `${reading.sensorType} – ${reading.dataKey}`, points: [] };
         byKey.set(key, series);
       }
-      series.points.push({ time: Date.parse(reading.dateTime), value: reading.DataValue });
+      series.points.push({ time: parseApiTime(reading.dateTime), value: reading.dataValue });
     }
     for (const series of byKey.values()) {
       series.points.sort((a, b) => a.time - b.time);
     }
+    console.log('SensorDataService.series', byKey);
     return byKey;
   });
 
@@ -70,7 +71,10 @@ export class SensorDataService {
   constructor() {
     const fetchReadings: () => Observable<SensorReading[]> = USE_MOCK_DATA
       ? ((api) => () => of(api()))(createMockApi())
-      : () => this.http.get<SensorReading[]>(API_URL);
+      : () => {
+        console.log('SensorDataService.fetchReadings', API_URL);
+        return this.http.get<SensorReading[]>(API_URL);
+      };
 
     timer(0, POLL_INTERVAL_MS)
       .pipe(
@@ -96,9 +100,21 @@ export class SensorDataService {
     return this.series().get(key)?.label ?? key;
   }
 
-  latest(key: string): number | null {
+  latest(key: string): string | null {
     return this.series().get(key)?.points.at(-1)?.value ?? null;
   }
+}
+
+// The API sends UTC times without a "Z" (e.g. "2026-10-13T14:47:37.587"), which browsers would
+// read as local time. Treat any time without an explicit offset as UTC.
+function parseApiTime(dateTime: string): number {
+  const hasOffset = /(Z|[+-]\d{2}:?\d{2})$/i.test(dateTime);
+  return Date.parse(hasOffset ? dateTime : `${dateTime}Z`);
+}
+
+// True for values like "21.5" or "-3"; false for "open", "", etc.
+export function isNumeric(value: string): boolean {
+  return value.trim() !== '' && Number.isFinite(Number(value));
 }
 
 export function seriesKey(sensorType: string, dataKey: string): string {

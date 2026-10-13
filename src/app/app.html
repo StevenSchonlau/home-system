@@ -1,4 +1,14 @@
-<header>Home System</header>
+<header>
+  <span>Home System</span>
+  <button
+    type="button"
+    class="btn theme-toggle"
+    (click)="themeService.toggle()"
+    [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+  >
+    {{ themeService.theme() === 'dark' ? '☀' : '☾' }}
+  </button>
+</header>
 <main>
   <router-outlet />
 </main>

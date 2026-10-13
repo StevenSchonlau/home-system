@@ -3,10 +3,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SensorDataService } from '../../sensor-data.service';
 import { DashboardConfigService } from '../dashboard-config.service';
 import { SensorChart } from '../tile-content/sensor-chart';
+import { TimeRangePicker } from '../time-range-picker/time-range-picker';
 
 // Full-page graph of one tile's 1-3 sensor series over time.
 @Component({
-  imports: [RouterLink, SensorChart],
+  imports: [RouterLink, SensorChart, TimeRangePicker],
   selector: 'app-dashboard-graph',
   styleUrl: './dashboard-graph.css',
   templateUrl: './dashboard-graph.html',

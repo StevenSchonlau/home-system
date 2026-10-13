@@ -7,9 +7,10 @@ import { DashboardConfig } from '../dashboard.models';
 import { DashboardTile } from '../dashboard-tile/dashboard-tile';
 import { SensorChart } from '../tile-content/sensor-chart';
 import { StateEntries } from '../tile-content/state-entries';
+import { TimeRangePicker } from '../time-range-picker/time-range-picker';
 
 @Component({
-  imports: [CdkDropList, CdkDrag, RouterLink, DashboardTile, StateEntries, SensorChart],
+  imports: [CdkDropList, CdkDrag, RouterLink, DashboardTile, StateEntries, SensorChart, TimeRangePicker],
   selector: 'app-dashboard-home',
   styleUrl: './dashboard-home.css',
   templateUrl: './dashboard-home.html',

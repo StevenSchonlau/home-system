@@ -1,8 +1,0 @@
-{
-  "tiles": [
-    { "id": "tile-1", "size": "1x1", "fields": ["Thermostat:temperature"] },
-    { "id": "tile-2", "size": "1x2", "fields": ["Outdoor:temperature", "Thermostat:humidity"] },
-    { "id": "tile-3", "size": "1x3", "fields": ["PowerMeter:watts"], "showGraph": true },
-    { "id": "tile-4", "size": "1x3", "fields": ["Thermostat:temperature", "Outdoor:temperature", "Crockpot:temperature"] }
-  ]
-}
