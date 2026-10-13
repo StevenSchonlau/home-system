@@ -7,7 +7,7 @@
       <app-time-range-picker />
     </div>
     <div class="card">
-      <app-sensor-chart class="chart" [fields]="tile.fields" />
+      <app-sensor-chart class="chart" [fields]="tile.fields" [kind]="kind(tile)" />
     </div>
   } @else {
     <h1 id="graph-title">Tile not found</h1>

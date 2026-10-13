@@ -3,7 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../app.routes';
-import { DashboardConfigService } from '../dashboard/dashboard-config.service';
+import { AccountService } from '../account.service';
+import { DashboardConfigService, storageKey } from '../dashboard/dashboard-config.service';
 import { DashboardHome } from '../dashboard/dashboard-home/dashboard-home';
 import { SensorDataService } from '../sensor-data.service';
 import { CalendarPage } from './calendar-page';
@@ -65,9 +66,9 @@ describe('Calendar with the existing dashboard', () => {
       'Replace filter',
     );
     const link = harness.routeNativeElement!.querySelector<HTMLAnchorElement>(
-      '.toolbar a[href="/calendar"]',
+      'app-calendar-widget a[href="/calendar"]',
     )!;
-    expect(link.textContent).toContain('Open calendar');
+    expect(link.textContent).toContain('View full calendar');
     link.click();
     await harness.fixture.whenStable();
     harness.detectChanges();
@@ -103,7 +104,7 @@ describe('Calendar with the existing dashboard', () => {
     reorder.click();
     harness.detectChanges();
     expect(root.querySelector('.grid.editing')).not.toBeNull();
-    expect(root.querySelector('.toolbar a[href="/calendar"]')).not.toBeNull();
+    expect(root.querySelector('app-calendar-widget a[href="/calendar"]')).not.toBeNull();
     expect(JSON.stringify(config.config())).toBe(before);
     await harness.navigateByUrl('/calendar', CalendarPage);
     expect(harness.routeNativeElement?.querySelectorAll('.day')).toHaveLength(42);
@@ -168,7 +169,7 @@ describe('Calendar with the existing dashboard', () => {
     await harness.fixture.whenStable();
     harness.detectChanges();
     expect(config.config()).toEqual(layout);
-    expect(JSON.parse(localStorage.getItem('dashboard-config')!)).toEqual(layout);
+    expect(JSON.parse(localStorage.getItem(storageKey(TestBed.inject(AccountService).selected()))!)).toEqual(layout);
     config.moveTile(0, 1);
     harness.detectChanges();
     expect(
@@ -179,7 +180,7 @@ describe('Calendar with the existing dashboard', () => {
     root.querySelector<HTMLButtonElement>('.grid .remove')!.click();
     harness.detectChanges();
     expect(config.config().tiles.map((tile) => tile.id)).toEqual(['door']);
-    expect(JSON.parse(localStorage.getItem('dashboard-config')!).tiles).toHaveLength(1);
+    expect(JSON.parse(localStorage.getItem(storageKey(TestBed.inject(AccountService).selected()))!).tiles).toHaveLength(1);
     expect(root.querySelector('app-calendar-widget')).not.toBeNull();
     Object.defineProperty(input, 'files', {
       configurable: true,
@@ -202,7 +203,7 @@ describe('Calendar with the existing dashboard', () => {
     TestBed.inject(SensorDataService).error.set('Sensor backend unavailable');
     harness.detectChanges();
     expect(root.querySelector('.error')?.textContent).toContain('Sensor backend unavailable');
-    expect(root.querySelector('.toolbar a[href="/calendar"]')).not.toBeNull();
+    expect(root.querySelector('app-calendar-widget a[href="/calendar"]')).not.toBeNull();
     expect(root.querySelector('app-calendar-widget .empty')).not.toBeNull();
   });
 });

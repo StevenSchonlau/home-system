@@ -64,7 +64,7 @@ describe('Calendar in the application shell', () => {
     fixture.detectChanges();
     expect(TestBed.inject(Router).url).toBe('/dashboard');
     expect(dashboardLinks[0].getAttribute('aria-current')).toBe('page');
-    root.querySelector<HTMLAnchorElement>('.toolbar a[href="/calendar"]')!.click();
+    root.querySelector<HTMLAnchorElement>('app-calendar-widget a[href="/calendar"]')!.click();
     await fixture.whenStable();
     fixture.detectChanges();
     expect(TestBed.inject(Router).url).toBe('/calendar');

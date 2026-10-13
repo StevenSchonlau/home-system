@@ -1,49 +1,142 @@
 <section aria-labelledby="create-title">
-  <h1 id="create-title">Add tile</h1>
+  @if (notFound) {
+    <h1 id="create-title">Tile not found</h1>
+    <p>This tile no longer exists on the dashboard.</p>
+    <a class="btn" routerLink="/dashboard">← Dashboard</a>
+  } @else {
+    <h1 id="create-title">{{ existing ? 'Edit tile' : 'Add tile' }}</h1>
 
-  <fieldset>
-    <legend>Size</legend>
-    @for (option of sizes; track option) {
-      <label>
-        <input
-          type="radio"
-          name="size"
-          [value]="option"
-          [checked]="size() === option"
-          (change)="size.set(option)"
-        />
-        {{ option }}
-      </label>
-    }
-    @if (size() === '1x3') {
-      <label>
-        <input type="checkbox" [checked]="showGraph()" (change)="showGraph.set($any($event.target).checked)" />
-        Show as graph
-      </label>
-    }
-  </fieldset>
+    <fieldset>
+      <legend>Size</legend>
+      @for (option of sizes; track option) {
+        <label>
+          <input
+            type="radio"
+            name="size"
+            [value]="option"
+            [checked]="size() === option"
+            (change)="size.set(option)"
+          />
+          {{ option }}
+        </label>
+      }
+    </fieldset>
 
-  <fieldset>
-    <legend>Entries (pick 1–{{ maxFields }})</legend>
-    @for (field of availableFields(); track field.key) {
-      <label>
-        <input
-          type="checkbox"
-          [checked]="selected().includes(field.key)"
-          [disabled]="!selected().includes(field.key) && selected().length >= maxFields"
-          (change)="toggleField(field.key, $any($event.target).checked)"
-        />
-        {{ field.label }}
-      </label>
-    } @empty {
-      <p>No sensor data found for this account yet.</p>
-    }
-  </fieldset>
+    <fieldset>
+      <legend>Entries (pick 1–{{ maxFields }})</legend>
+      @for (field of availableFields(); track field.key) {
+        <label>
+          <input
+            type="checkbox"
+            [checked]="selected().includes(field.key)"
+            [disabled]="!selected().includes(field.key) && selected().length >= maxFields"
+            (change)="toggleField(field.key, $any($event.target).checked)"
+          />
+          {{ field.label }}
+        </label>
+      } @empty {
+        <p>No sensor data found for this account yet.</p>
+      }
+    </fieldset>
 
-  <div class="actions">
-    <button type="button" class="btn btn-primary" (click)="create()" [disabled]="selected().length === 0">
-      Create tile
-    </button>
-    <a class="btn" routerLink="/dashboard">Cancel</a>
-  </div>
+    <fieldset class="display-options">
+      <legend>Display</legend>
+      @for (option of displays; track option.value) {
+        <label>
+          <input
+            type="radio"
+            name="display"
+            [checked]="display() === option.value"
+            (change)="display.set(option.value)"
+          />
+          <span class="option-label">{{ option.label }}</span>
+          <span class="option-description">{{ option.description }}</span>
+        </label>
+      }
+      @if (display() === 'line' && textEntries().length) {
+        <p class="hint">
+          Note: a line chart needs numbers. {{ textEntries().join(', ') }}
+          {{ textEntries().length === 1 ? 'has' : 'have' }} text values, so this tile will show as a
+          bar chart.
+        </p>
+      }
+    </fieldset>
+
+    @if (display() === 'values') {
+      <fieldset>
+        <legend>Number color</legend>
+        @for (mode of colorModes; track mode.value) {
+          <label>
+            <input
+              type="radio"
+              name="colorMode"
+              [checked]="colorMode() === mode.value"
+              (change)="colorMode.set(mode.value)"
+            />
+            {{ mode.label }}
+          </label>
+        }
+        @if (colorMode() === 'stdDev') {
+          <p class="hint">
+            Amber when 1–2 standard deviations from the average, red beyond 2 (over the selected
+            time range).
+          </p>
+        }
+        @if (colorMode() === 'thresholds') {
+          <p class="hint">
+            Green inside the limits, amber within 10% of one, red with ⚠ past it. Leave blank for no
+            limit.
+          </p>
+          @for (key of selected(); track key) {
+            <div class="limits">
+              <span class="limits-label">{{ label(key) }}</span>
+              <label>
+                Min
+                <input
+                  type="number"
+                  step="any"
+                  [value]="thresholds()[key]?.min ?? ''"
+                  (input)="setLimit(key, 'min', $any($event.target).value)"
+                />
+              </label>
+              <label>
+                Max
+                <input
+                  type="number"
+                  step="any"
+                  [value]="thresholds()[key]?.max ?? ''"
+                  (input)="setLimit(key, 'max', $any($event.target).value)"
+                />
+              </label>
+            </div>
+          } @empty {
+            <p class="hint">Pick entries above to set their limits.</p>
+          }
+        }
+      </fieldset>
+      <fieldset>
+        <legend>Trend</legend>
+        <label>
+          <input
+            type="checkbox"
+            [checked]="showTrend()"
+            (change)="showTrend.set($any($event.target).checked)"
+          />
+          Show a trend line next to each number
+        </label>
+      </fieldset>
+    }
+
+    <div class="actions">
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="save()"
+        [disabled]="selected().length === 0"
+      >
+        {{ existing ? 'Save' : 'Create tile' }}
+      </button>
+      <a class="btn" routerLink="/dashboard">Cancel</a>
+    </div>
+  }
 </section>
