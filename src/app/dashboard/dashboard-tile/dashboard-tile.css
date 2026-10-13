@@ -26,3 +26,11 @@
 :host(.size-1x3) {
   grid-column: span 3;
 }
+
+/* Phones: the dashboard grid is one column, so every size takes one cell. */
+@media (max-width: 600px) {
+  :host(.size-1x2),
+  :host(.size-1x3) {
+    grid-column: span 1;
+  }
+}

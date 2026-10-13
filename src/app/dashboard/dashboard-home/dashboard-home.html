@@ -1,18 +1,17 @@
 <section aria-labelledby="dashboard-title">
-  <h1 id="dashboard-title">Dashboard</h1>
+  <h1 id="dashboard-title">{{ greeting() }}</h1>
 
   <div class="layout">
     <div class="content">
       <div class="toolbar">
-        <div class="filters-bar">
+        <div class="toolbar-group">
           <app-account-picker />
           <app-time-range-picker />
         </div>
-        <!-- Flat sections flush to the toolbar's right edge, divided by lines. -->
-        <div class="actions">
+        <div class="toolbar-group end actions">
           <button
             type="button"
-            class="section"
+            class="toolbar-section"
             [class.active]="editing()"
             (click)="editing.set(!editing())"
             [attr.aria-pressed]="editing()"
@@ -21,7 +20,7 @@
           </button>
           <button
             type="button"
-            class="section icon"
+            class="toolbar-section icon"
             (click)="exportConfig()"
             aria-label="Export layout"
             title="Export layout"
@@ -32,7 +31,7 @@
           </button>
           <button
             type="button"
-            class="section icon"
+            class="toolbar-section icon"
             (click)="fileInput.click()"
             aria-label="Import layout"
             title="Import layout"
@@ -48,7 +47,7 @@
             hidden
             (change)="importConfig($event)"
           />
-          <a class="section primary" routerLink="/dashboard/create">+ Add tile</a>
+          <a class="toolbar-section primary" routerLink="/dashboard/create">+ Add tile</a>
         </div>
       </div>
 

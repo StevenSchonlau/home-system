@@ -1,12 +1,6 @@
+/* The sections become items of the surrounding .toolbar-group. */
 :host {
-  display: block;
-}
-
-.range {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
+  display: contents;
 }
 
 /* Pill-shaped Last / Custom switch */
@@ -42,13 +36,11 @@
 }
 
 .amount {
-  width: 4.5rem;
+  width: 3.5rem;
+  text-align: right;
 }
 
-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+.field-label {
   font-size: 0.85rem;
   color: var(--text-muted);
 }

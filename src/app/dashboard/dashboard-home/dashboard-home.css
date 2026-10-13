@@ -7,105 +7,8 @@ h1 {
   font-size: 1.6rem;
 }
 
-/* Filters on the left; action sections flush to the right edge; open space between. */
 .toolbar {
-  container-type: inline-size;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  justify-content: space-between;
   margin-bottom: 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.filters-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem;
-}
-
-.actions {
-  display: flex;
-}
-
-.section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0 1.1rem;
-  border: 0;
-  border-left: 1px solid var(--border);
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 500;
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 120ms;
-}
-
-.section:hover {
-  background: var(--surface-hover);
-}
-
-.section:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-.section.icon {
-  padding: 0 0.85rem;
-}
-
-.section.icon svg {
-  width: 1.1rem;
-  height: 1.1rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.section.active {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.section.primary {
-  border-left-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-contrast);
-}
-
-.section.primary:hover {
-  background: var(--accent-hover);
-}
-
-/* Not enough room for one row: the sections become their own full-width row. */
-@container (max-width: 44rem) {
-  .actions {
-    flex-basis: 100%;
-    border-top: 1px solid var(--border);
-  }
-
-  .section {
-    flex: 1;
-    min-height: 2.5rem;
-  }
-
-  .section:first-child {
-    border-left: 0;
-  }
 }
 
 .empty {
@@ -168,6 +71,13 @@ h1 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+}
+
+/* Phones: one column; every tile is 1x1 (dashboard-tile.css drops the spans). */
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .grid.editing app-dashboard-tile {
