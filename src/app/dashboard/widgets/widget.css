@@ -1,0 +1,60 @@
+/* Shared by the weather and air-quality widgets: a card that links to the full page. */
+:host {
+  display: block;
+}
+
+.widget {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 120ms;
+}
+
+.widget:hover {
+  border-color: var(--accent);
+}
+
+.widget:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+
+.title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.detail,
+.status {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.link {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--accent);
+}

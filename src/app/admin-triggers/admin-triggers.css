@@ -1,0 +1,117 @@
+/* Trigger-list styles from demos/alert-demo.html, on the app's theme tokens. */
+:host {
+  display: block;
+  /* Alerts are RED, reminders are BLUE (same as the Overview). */
+  --alert: #d93a3f;
+  --reminder: #2f78c9;
+  --trigger-button: #333;
+}
+
+:host-context([data-theme='dark']) {
+  --trigger-button: #3e4d5a;
+}
+
+h1 {
+  margin: 0 0 6px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.count {
+  display: inline-block;
+  min-width: 24px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--trigger-button);
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Reminders | Alerts. On narrow screens (like phones) they stack on top of each other. */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 1200px;
+  align-items: start;
+}
+
+@media (max-width: 700px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.layout h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+.trigger-subhead {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin: 12px 0 8px;
+}
+
+.trigger-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.trigger-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+
+.trigger-list.alert li {
+  border-left: 6px solid var(--alert);
+}
+
+.trigger-list.reminder li {
+  border-left: 6px solid var(--reminder);
+}
+
+/* Demo helper: "2 days ago" checkbox next to each Trigger button */
+.trigger-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.backdate {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.trigger-btn {
+  font-size: 15px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 4px 4px 4px 0;
+  background: var(--trigger-button);
+  color: white;
+  white-space: nowrap;
+}

@@ -131,10 +131,10 @@ input[type='radio'] {
   accent-color: var(--accent);
 }
 
-/* The dashboard has a calendar sidebar, so its page (and the nav above it) gets more room.
+/* Wide pages: the dashboard (calendar sidebar) and the overview (two-column layout) get more room.
    !important beats the component-scoped max-width in app.css. */
 main:has(> app-dashboard-home),
-nav:has(+ main > app-dashboard-home) {
+main:has(> app-overview) {
   max-width: 82rem !important;
 }
 

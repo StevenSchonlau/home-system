@@ -12,6 +12,8 @@ import { StateEntries } from '../tile-content/state-entries';
 import { StatsSummary } from '../tile-content/stats-summary';
 import { TimeRangePicker } from '../time-range-picker/time-range-picker';
 import { AccountPicker } from '../account-picker';
+import { AirQualityWidget } from '../widgets/air-quality-widget';
+import { WeatherWidget } from '../widgets/weather-widget';
 
 @Component({
   imports: [
@@ -25,6 +27,8 @@ import { AccountPicker } from '../account-picker';
     TimeRangePicker,
     CalendarWidget,
     AccountPicker,
+    WeatherWidget,
+    AirQualityWidget,
   ],
   selector: 'app-dashboard-home',
   styleUrl: './dashboard-home.css',

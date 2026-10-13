@@ -1,0 +1,38 @@
+<section aria-labelledby="admin-triggers-title">
+  <h1 id="admin-triggers-title">Admin triggers</h1>
+  <p>
+    Click "Trigger" to pretend an event just happened. Trigger several to see them queue up.
+    Tick "2 days ago" to add one as if it happened two days ago.
+  </p>
+  <p class="status" role="status">
+    Event queue: <span class="count">{{ alerts.queue().length }}</span>
+    <a routerLink="/overview">View on the Overview →</a>
+  </p>
+
+  <div class="layout">
+    @for (list of lists; track list.title) {
+      <section>
+        <h2>{{ list.title }}</h2>
+        @for (group of list.groups; track $index) {
+          @if (group.label) {
+            <h3 class="trigger-subhead">{{ group.label }}</h3>
+          }
+          <ul class="trigger-list" [class]="list.type">
+            @for (info of group.items; track info.name) {
+              <li>
+                <span>{{ info.name }}</span>
+                <div class="trigger-controls">
+                  <label class="backdate">
+                    <input #box type="checkbox" (change)="backdate(info, box)" />
+                    2 days ago
+                  </label>
+                  <button type="button" class="trigger-btn" (click)="alerts.addEvent(info)">Trigger</button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  </div>
+</section>

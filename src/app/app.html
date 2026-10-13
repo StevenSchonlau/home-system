@@ -1,18 +1,21 @@
-<header>Home System
+<header>
+  <a class="brand" routerLink="/overview">Home System</a>
+  <nav aria-label="Main">
+    <a routerLink="/overview" routerLinkActive="active" ariaCurrentWhenActive="page">Overview</a>
+    <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page">Dashboard</a>
+    <a routerLink="/weather" routerLinkActive="active" ariaCurrentWhenActive="page">Weather</a>
+    <a routerLink="/air-quality" routerLinkActive="active" ariaCurrentWhenActive="page">Air Quality</a>
+    <a routerLink="/admin-triggers" routerLinkActive="active" ariaCurrentWhenActive="page">Admin Triggers</a>
+  </nav>
   <button
-      type="button"
-      class="btn theme-toggle"
-      (click)="themeService.toggle()"
-      [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
-    >
+    type="button"
+    class="btn theme-toggle"
+    (click)="themeService.toggle()"
+    [attr.aria-label]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+  >
     {{ themeService.theme() === 'dark' ? '☀' : '☾' }}
   </button>
 </header>
-<nav aria-label="Dashboard">
-  <a routerLink="/weather" routerLinkActive="active" ariaCurrentWhenActive="page">Weather</a>
-  <a routerLink="/air-quality" routerLinkActive="active" ariaCurrentWhenActive="page">Air Quality</a>
-  <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page">Dashboard</a>
-</nav>
 <main>
   <router-outlet />
 </main>
