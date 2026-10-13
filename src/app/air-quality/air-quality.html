@@ -1,0 +1,51 @@
+<section aria-labelledby="air-quality-title" [attr.aria-busy]="loading()">
+  <h1 id="air-quality-title">Air quality</h1>
+  <p>Current air quality estimates for your location.</p>
+  <button type="button" (click)="loadAirQuality()" [disabled]="loading()">
+    {{ loading() ? 'Loading...' : 'Refresh air quality' }}
+  </button>
+
+  @if (loading()) {
+    <p role="status">Finding your location and loading air quality...</p>
+  }
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (airQuality(); as quality) {
+    <p>
+      Forecast location: {{ quality.latitude }}, {{ quality.longitude }}
+      &middot; Time zone: {{ quality.timezone }}
+    </p>
+    <h2>Current conditions</h2>
+    <p>Updated {{ quality.current.time.replace('T', ' ') }} ({{ quality.timezone }})</p>
+    <dl>
+      <div>
+        <dt>AQI (U.S.)</dt>
+        <dd>{{ quality.current.us_aqi ?? 'Unavailable' }}</dd>
+      </div>
+      <div>
+        <dt>PM 2.5</dt>
+        <dd>
+          {{ quality.current.pm2_5 ?? 'Unavailable' }}
+          @if (quality.current.pm2_5 !== null) {
+            {{ quality.current_units.pm2_5 }}
+          }
+        </dd>
+      </div>
+      <div>
+        <dt>PM 10</dt>
+        <dd>
+          {{ quality.current.pm10 ?? 'Unavailable' }}
+          @if (quality.current.pm10 !== null) {
+            {{ quality.current_units.pm10 }}
+          }
+        </dd>
+      </div>
+    </dl>
+    <p>These conditions are model estimates from the Copernicus Atmosphere Monitoring Service (CAMS).</p>
+  }
+  <p class="attribution">
+    Air quality data by <a href="https://open-meteo.com/">Open-Meteo</a> and
+    <a href="https://atmosphere.copernicus.eu/">CAMS</a> (CAMS ENSEMBLE and global forecasts).
+  </p>
+</section>

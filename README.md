@@ -23,6 +23,24 @@ location/network errors. Location access requires HTTPS or localhost; accessing 
 Pi over plain HTTP at its local IP will generally block geolocation. Serve it over
 HTTPS to use the weather page remotely.
 
+## Air quality
+
+Open `/air-quality` or use the dashboard navigation and allow browser location access.
+`AirQualityService.getAirQuality(latitude, longitude)` requests current U.S. AQI,
+PM 2.5, and PM 10 from Open-Meteo, using the same location, refresh, and error-handling
+pattern as the weather page. Particulate concentrations use the API's units (micrograms
+per cubic meter); missing values display as unavailable. These are CAMS model estimates.
+
+Example request:
+
+```text
+https://air-quality-api.open-meteo.com/v1/air-quality?latitude=40&longitude=-105&current=us_aqi,pm2_5,pm10&timezone=auto
+```
+
+No API key is required for the free non-commercial endpoint. The page credits
+Open-Meteo and CAMS. See the [Air Quality API documentation](https://open-meteo.com/en/docs/air-quality-api).
+Browser location access requires HTTPS or localhost, as on the weather page.
+
 ## To run on a Pi:
 
 Connect via ssh to the pi

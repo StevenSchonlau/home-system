@@ -11,6 +11,22 @@ header {
   font-weight: bold;
 }
 
+nav {
+  display: flex;
+  gap: 1.5rem;
+  max-width: 60rem;
+  margin: auto;
+  padding: 1rem 1.5rem 0;
+}
+
+nav a {
+  color: #155e75;
+}
+
+nav a.active {
+  font-weight: bold;
+}
+
 main {
   max-width: 60rem;
   margin: auto;
