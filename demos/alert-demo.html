@@ -32,16 +32,16 @@
     }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Page layout: Reminders | Alerts | Event queue.
+    /* Trigger lists: Reminders | Alerts.
        On narrow screens (like phones) they stack on top of each other. */
     .layout {
       display: grid;
-      grid-template-columns: 1fr 1fr 1.4fr;
+      grid-template-columns: 1fr 1fr;
       gap: 24px;
       max-width: 1200px;
       align-items: start;
     }
-    @media (max-width: 900px) {
+    @media (max-width: 700px) {
       .layout { grid-template-columns: 1fr; }
     }
     .layout h2 { margin: 0 0 12px; font-size: 20px; }
@@ -50,6 +50,20 @@
     .backdate { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #666; cursor: pointer; white-space: nowrap; }
 
     /* ----- Insurance score card ----- */
+    /* Two columns: scores + triggers on the left, buttons + queue on the right.
+       On narrower screens they stack. */
+    .page {
+      display: grid;
+      grid-template-columns: minmax(0, 820px) minmax(320px, 1fr);
+      gap: 24px;
+      max-width: 1240px;
+      align-items: start;
+    }
+    @media (max-width: 1000px) {
+      .page { grid-template-columns: 1fr; }
+    }
+    .left-col, .right-col { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+    .score-cards { display: flex; flex-direction: column; gap: 16px; }
     .score-card {
       display: flex;
       gap: 20px;
@@ -58,8 +72,6 @@
       background: white;
       border-radius: 12px;
       padding: 18px;
-      margin-bottom: 24px;
-      max-width: 1200px;
       box-sizing: border-box;
       box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     }
@@ -105,16 +117,12 @@
     .score-mascot svg { width: 120px; height: auto; display: block; }
 
     /* Buttons on the right side of the score card */
-    /* Fills the white space to the right and centers the buttons in it */
+    /* Company buttons, centered at the top of the right column */
     .score-actions {
-      flex: 1;
-      align-self: stretch;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
       gap: 10px;
-      min-width: 240px;
     }
     .action-btn {
       background: #2f3b4c;
@@ -180,8 +188,6 @@
 
     /* Little Alert Girl faces used like emojis */
     .face-icon { width: 42px; height: auto; vertical-align: middle; margin-left: 4px; }
-    .toast { display: none; align-items: center; gap: 8px; }
-    .toast.show { display: flex; }
     .toast .face-icon { width: 40px; margin: 0; background: white; border-radius: 50%; padding: 2px; }
 
     /* ----- Trigger lists ----- */
@@ -198,7 +204,8 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.06);
     }
     #alertTriggers li    { border-left: 6px solid var(--alert); }
-    #reminderTriggers li { border-left: 6px solid var(--reminder); }
+    #reminderTriggers-home li, #reminderTriggers-car li { border-left: 6px solid var(--reminder); }
+    .trigger-subhead { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin: 12px 0 8px; }
     .trigger-btn { background: #333; color: white; white-space: nowrap; }
 
     /* ----- Event queue panel ----- */
@@ -326,11 +333,18 @@
       padding: 12px 18px;
       border-radius: 8px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-      max-width: calc(100% - 32px);
+      width: max-content;
+      max-width: min(520px, calc(100% - 32px));
+      box-sizing: border-box;
       display: none;
-      z-index: 10;  /* keeps the toast on top of everything else */
+      align-items: center;
+      gap: 14px;    /* small space between Alert Girl and the message */
+      z-index: 30;  /* keeps the toast on top of everything else */
     }
-    .toast.show { display: block; }
+    .toast.show { display: flex; }
+    /* The message text: centered and easy to read */
+    /* "balance" makes the browser split the text into lines of about the same length */
+    .toast span { flex: 1; text-align: center; line-height: 1.45; text-wrap: balance; }
 
     /* ----- Fake photo upload window ----- */
     .overlay {
@@ -354,6 +368,33 @@
     .upload-window h3 { margin: 0 0 8px; }
     .upload-window p  { margin: 0 0 14px; line-height: 1.4; }
     .upload-window .primary { background: var(--reminder); }
+    .choice-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .choice { flex: 1; min-width: 150px; padding: 14px; margin: 0; }
+
+    /* ----- Pretend mechanic calendar ----- */
+    .calendar-window { width: 480px; }
+    .cal-label { font-weight: 700; font-size: 14px; margin: 10px 0 6px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .cal-day {
+      margin: 0;
+      padding: 6px 0;
+      font-size: 13px;
+      line-height: 1.2;
+      background: #eef6ee;
+      color: #222;
+      border: 2px solid transparent;
+    }
+    .cal-day .num { display: block; font-size: 18px; font-weight: 700; }
+    .cal-day:disabled { background: #f0f0f0; color: #aaa; opacity: 1; }
+    .cal-day.picked, .cal-time.picked { border-color: var(--reminder); background: var(--reminder-light); }
+    .cal-times { display: flex; flex-wrap: wrap; gap: 6px; min-height: 40px; }
+    .cal-time { margin: 0; padding: 8px 10px; font-size: 14px; background: #eef6ee; color: #222; border: 2px solid transparent; }
+    .cal-time:disabled { background: #f0f0f0; color: #aaa; text-decoration: line-through; opacity: 1; }
+    .cal-hint { color: #888; font-size: 14px; align-self: center; }
+    .cal-legend { font-size: 12px; color: #666; margin: 10px 0; display: flex; align-items: center; gap: 6px; }
+    .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+    .dot.open { background: #eef6ee; border: 1px solid #9c9; }
+    .dot.booked { background: #f0f0f0; border: 1px solid #ccc; margin-left: 10px; }
     .fake-folder { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 14px; }
     .folder-name {
       background: #f0f0f0;
@@ -385,13 +426,17 @@
   <p>Click "Trigger" to pretend an event just happened. Trigger several to see them queue up.
      Tick "2 days ago" to add one as if it happened two days ago.</p>
 
-  <!-- Insurance score: shows how unaddressed reminders affect your insurance cost -->
-  <section class="score-card" id="scoreCard">
-    <!-- Left side: the grade, with Alert Girl the insurance adjuster under it -->
-    <div class="score-left">
-      <div class="grade" id="grade">A+</div>
-      <!-- Shown when there are unaddressed reminders: thinking it over -->
-      <div class="score-mascot" id="adjusterThinking">
+  <!-- Page layout: scores and triggers on the left; company buttons and the event queue on the right -->
+  <div class="page">
+    <div class="left-col">
+  <!-- Insurance scores: how unaddressed reminders affect your home and car insurance -->
+    <div class="score-cards">
+    <section class="score-card" id="home-card">
+      <!-- Left side: the grade, with Alert Girl under it -->
+      <div class="score-left">
+        <div class="grade A" id="home-grade">A+</div>
+        <!-- Shown when there are unaddressed reminders: Alert Girl the adjuster thinking it over -->
+        <div class="score-mascot" id="home-thinking">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 310" role="img" aria-label="Alert Girl as an insurance adjuster, holding a clipboard and thinking over the score">
   <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
     
@@ -457,9 +502,9 @@
     <circle cx="206" cy="30" r="6"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.6s" repeatCount="indefinite"/></circle>
   </g>
 </svg>
-      </div>
-      <!-- Shown for a perfect A+ score: thumbs up -->
-      <div class="score-mascot" id="adjusterHappy">
+        </div>
+        <!-- Shown for a perfect A+ score: thumbs up -->
+        <div class="score-mascot" id="home-happy">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 310" role="img" aria-label="Alert Girl smiling and giving a thumbs up for a perfect insurance score">
   <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
     
@@ -528,38 +573,196 @@
     </path>
   </g>
 </svg>
+        </div>
       </div>
+      <div class="score-details">
+        <h2>Home insurance score</h2>
+        <p class="score-summary" id="home-summary"></p>
+        <table class="cost-table">
+          <tr><td>Home value</td><td id="home-value"></td></tr>
+          <tr><td>Baseline insurance (estimate)</td><td id="home-baseline"></td></tr>
+          <tr><td>Added by unaddressed reminders</td><td id="home-added"></td></tr>
+          <tbody id="home-issues"></tbody>
+          <tr class="total"><td>Estimated insurance cost</td><td id="home-total"></td></tr>
+        </table>
+        <p class="score-note">Demo numbers only. Costs are rough estimates, not real insurance quotes.</p>
+      </div>
+    </section>
+    <section class="score-card" id="car-card">
+      <!-- Left side: the grade, with Alert Girl under it -->
+      <div class="score-left">
+        <div class="grade A" id="car-grade">A+</div>
+        <!-- Shown when there are unaddressed reminders: Alert Girl in her riding gear thinking it over -->
+        <div class="score-mascot" id="car-thinking">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 310" role="img" aria-label="Alert Girl in motorcycle gear, helmet under her arm, thinking over the car score">
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    
+    <!-- Dark jeans with tall black riding boots -->
+    <path d="M92 236 H118 V266 H94 Z" fill="#3d4f6b"/>
+    <path d="M122 236 H148 L147 266 H122 Z" fill="#3d4f6b"/>
+    <path d="M92 262 H120 V286 H124 Q124 296 116 296 H84 Q84 286 92 284 Z" fill="#1f1f1f"/>
+    <path d="M120 262 H149 L150 284 Q158 286 158 296 H124 Q120 296 120 286 Z" fill="#1f1f1f"/>
+    <line x1="94" y1="270" x2="118" y2="270" stroke="#555" stroke-width="2"/>
+    <line x1="122" y1="270" x2="147" y2="270" stroke="#555" stroke-width="2"/>
+    
+    <!-- Leather biker jacket over a light blue top -->
+    <path d="M76 160 Q76 140 98 136 H142 Q164 140 164 160 L158 240 H82 Z" fill="#4a3428"/>
+    <path d="M104 136 L120 160 L136 136 Z" fill="#7cc4ea"/>
+    <!-- Wide lapels -->
+    <path d="M98 136 L112 170 L104 176 L92 146 Z" fill="#6b4c3b"/>
+    <path d="M142 136 L130 172 L138 178 L150 146 Z" fill="#6b4c3b"/>
+    <!-- Off-center zipper -->
+    <path d="M132 172 L126 236" fill="none" stroke="#c7ccd2" stroke-width="3"/>
+    <!-- Belt line and pocket zips -->
+    <path d="M82 222 H158" fill="none" stroke-width="3"/>
+    <path d="M90 200 L104 204 M150 200 L138 204" fill="none" stroke="#c7ccd2" stroke-width="2.5"/>
+    
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+    <path d="M96 84 Q104 82 112 84" fill="none" stroke-width="3.5"/>
+    <path d="M128 80 Q136 73 145 77" fill="none" stroke-width="3.5"/>
+    
+    <ellipse cx="104" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <ellipse cx="136" cy="96" rx="6" ry="7" fill="#ffffff" stroke-width="2.5"/>
+    <circle cx="107" cy="93" r="3.5" fill="#1e1e1e" stroke="none"/>
+    <circle cx="139" cy="93" r="3.5" fill="#1e1e1e" stroke="none"/>
+    <path d="M111 120 Q119 122 127 117" fill="none" stroke-width="3.5"/>
+    <circle cx="94" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.6"/>
+    <circle cx="146" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.6"/>
+    <!-- Helmet hanging from her hand by its strap -->
+    
+    <!-- Motorcycle helmet -->
+    <circle cx="56" cy="246" r="25" fill="#f8f6ef"/>
+    <path d="M34 250 Q50 232 76 242 L78 256 Q56 248 36 262 Z" fill="#2e3a4a"/>
+    <path d="M42 226 Q60 216 76 232" fill="none" stroke="#7cc4ea" stroke-width="6"/>
+    <path d="M42 226 Q60 216 76 232" fill="none" stroke-width="1.5"/>
+    <path d="M62 222 L58 224 M66 222 L66 232" fill="none" stroke-width="3"/>
+    
+    <path d="M80 152 Q62 184 64 212" fill="none" stroke-width="22"/>
+    <path d="M80 152 Q62 184 64 212" fill="none" stroke="#4a3428" stroke-width="13"/>
+    <ellipse cx="64" cy="216" rx="9" ry="10" fill="#f6cfae"/>
+    <!-- Hand on her chin, thinking -->
+    
+    <path d="M160 152 Q184 150 150 132" fill="none" stroke-width="22"/>
+    <path d="M160 152 Q184 150 150 132" fill="none" stroke="#4a3428" stroke-width="13"/>
+    <ellipse cx="143" cy="132" rx="9" ry="10" fill="#f6cfae"/>
+  </g>
+  <g fill="#9aa4ae">
+    <circle cx="176" cy="60" r="4"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" repeatCount="indefinite"/></circle>
+    <circle cx="190" cy="46" r="5"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.3s" repeatCount="indefinite"/></circle>
+    <circle cx="206" cy="30" r="6"><animate attributeName="opacity" values="0.2;1;0.2" dur="1.8s" begin="0.6s" repeatCount="indefinite"/></circle>
+  </g>
+</svg>
+        </div>
+        <!-- Shown for a perfect A+ score: thumbs up -->
+        <div class="score-mascot" id="car-happy">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 310" role="img" aria-label="Alert Girl in motorcycle gear giving an approving thumbs up for a perfect car score">
+  <g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    
+    <!-- Dark jeans with tall black riding boots -->
+    <path d="M92 236 H118 V266 H94 Z" fill="#3d4f6b"/>
+    <path d="M122 236 H148 L147 266 H122 Z" fill="#3d4f6b"/>
+    <path d="M92 262 H120 V286 H124 Q124 296 116 296 H84 Q84 286 92 284 Z" fill="#1f1f1f"/>
+    <path d="M120 262 H149 L150 284 Q158 286 158 296 H124 Q120 296 120 286 Z" fill="#1f1f1f"/>
+    <line x1="94" y1="270" x2="118" y2="270" stroke="#555" stroke-width="2"/>
+    <line x1="122" y1="270" x2="147" y2="270" stroke="#555" stroke-width="2"/>
+    
+    <!-- Leather biker jacket over a light blue top -->
+    <path d="M76 160 Q76 140 98 136 H142 Q164 140 164 160 L158 240 H82 Z" fill="#4a3428"/>
+    <path d="M104 136 L120 160 L136 136 Z" fill="#7cc4ea"/>
+    <!-- Wide lapels -->
+    <path d="M98 136 L112 170 L104 176 L92 146 Z" fill="#6b4c3b"/>
+    <path d="M142 136 L130 172 L138 178 L150 146 Z" fill="#6b4c3b"/>
+    <!-- Off-center zipper -->
+    <path d="M132 172 L126 236" fill="none" stroke="#c7ccd2" stroke-width="3"/>
+    <!-- Belt line and pocket zips -->
+    <path d="M82 222 H158" fill="none" stroke-width="3"/>
+    <path d="M90 200 L104 204 M150 200 L138 204" fill="none" stroke="#c7ccd2" stroke-width="2.5"/>
+    <!-- Helmet hanging from her hand by its strap -->
+    
+    <!-- Motorcycle helmet -->
+    <circle cx="56" cy="246" r="25" fill="#f8f6ef"/>
+    <path d="M34 250 Q50 232 76 242 L78 256 Q56 248 36 262 Z" fill="#2e3a4a"/>
+    <path d="M42 226 Q60 216 76 232" fill="none" stroke="#7cc4ea" stroke-width="6"/>
+    <path d="M42 226 Q60 216 76 232" fill="none" stroke-width="1.5"/>
+    <path d="M62 222 L58 224 M66 222 L66 232" fill="none" stroke-width="3"/>
+    
+    <path d="M80 152 Q62 184 64 212" fill="none" stroke-width="22"/>
+    <path d="M80 152 Q62 184 64 212" fill="none" stroke="#4a3428" stroke-width="13"/>
+    <ellipse cx="64" cy="216" rx="9" ry="10" fill="#f6cfae"/>
+    <!-- Thumbs up beside her shoulder -->
+    <path d="M160 152 Q200 178 190 130" fill="none" stroke-width="22"/>
+    <path d="M160 152 Q200 178 190 130" fill="none" stroke="#4a3428" stroke-width="13"/>
+    <rect x="184" y="88" width="9" height="24" rx="4.5" fill="#f6cfae"/>
+    <rect x="178" y="104" width="24" height="22" rx="7" fill="#f6cfae"/>
+    <path d="M184 111 H198 M184 118 H198" fill="none" stroke-width="2"/>
+    <g transform="rotate(-4 120 132)">
+      
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+      <path d="M96 81 Q104 77 112 80" fill="none" stroke-width="3.5"/>
+      <path d="M128 80 Q136 77 144 81" fill="none" stroke-width="3.5"/>
+      <path d="M98 95 Q104 90 110 95" fill="none" stroke-width="3.5"/>
+      <ellipse cx="104" cy="97" rx="3.5" ry="3" fill="#1e1e1e" stroke="none"/>
+      <path d="M130 95 Q136 90 142 95" fill="none" stroke-width="3.5"/>
+      <ellipse cx="136" cy="97" rx="3.5" ry="3" fill="#1e1e1e" stroke="none"/>
+      <path d="M108 116 Q121 125 134 115" fill="none" stroke-width="3.5"/>
+      <path d="M134 115 Q137 114 137 111" fill="none" stroke-width="2.5"/>
+      <circle cx="93" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.65"/>
+      <circle cx="147" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.65"/>
+    </g>
+  </g>
+  <path d="M216 66 L219 74 L227 77 L219 80 L216 88 L213 80 L205 77 L213 74 Z" fill="#f5c400" stroke="#1e1e1e" stroke-width="2" stroke-linejoin="round">
+    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="2.2s" repeatCount="indefinite"/>
+  </path>
+</svg>
+        </div>
+      </div>
+      <div class="score-details">
+        <h2>Car insurance score</h2>
+        <p class="score-summary" id="car-summary"></p>
+        <table class="cost-table">
+          <tr><td>Car value</td><td id="car-value"></td></tr>
+          <tr><td>Baseline insurance (estimate)</td><td id="car-baseline"></td></tr>
+          <tr><td>Added by unaddressed reminders</td><td id="car-added"></td></tr>
+          <tbody id="car-issues"></tbody>
+          <tr class="total"><td>Estimated insurance cost</td><td id="car-total"></td></tr>
+        </table>
+        <p class="score-note">Demo numbers only. Costs are rough estimates, not real insurance quotes.</p>
+      </div>
+    </section>
     </div>
-    <div class="score-details">
-      <h2>Insurance score</h2>
-      <p class="score-summary" id="scoreSummary"></p>
-      <table class="cost-table">
-        <tr><td>Home value</td><td id="homeValue"></td></tr>
-        <tr><td>Baseline insurance (estimate)</td><td id="baselineCost"></td></tr>
-        <tr><td>Added by unaddressed reminders</td><td id="addedCost"></td></tr>
-        <tbody id="issueRows"></tbody>
-        <tr class="total"><td>Estimated insurance cost</td><td id="totalCost"></td></tr>
-      </table>
-      <p class="score-note">Demo numbers only. Costs are rough estimates, not real insurance quotes.</p>
-    </div>
-
-    <!-- Right side: quick links to the insurance company -->
-    <div class="score-actions">
-      <button class="action-btn" onclick="openAccount()">My Progressive Account</button>
-      <button class="action-btn" onclick="openChat()">Chat with Progressive</button>
-      <button class="action-btn" onclick="startCall()">Call Progressive</button>
-    </div>
-  </section>
 
   <div class="layout">
     <section>
       <h2>Reminders</h2>
-      <ul class="trigger-list" id="reminderTriggers"></ul>
+      <h3 class="trigger-subhead">Home</h3>
+      <ul class="trigger-list" id="reminderTriggers-home"></ul>
+      <h3 class="trigger-subhead">Car</h3>
+      <ul class="trigger-list" id="reminderTriggers-car"></ul>
     </section>
     <section>
       <h2>Alerts</h2>
       <ul class="trigger-list" id="alertTriggers"></ul>
     </section>
+  </div>
+    </div>
+
+    <div class="right-col">
+    <!-- Quick links to the insurance company, at the top of the right column -->
+    <div class="score-actions">
+      <button class="action-btn" onclick="openAccount()">My Progressive Account</button>
+      <button class="action-btn" onclick="openChat()">Chat with Progressive</button>
+      <button class="action-btn" onclick="startCall()">Call Progressive</button>
+    </div>
 
     <!-- The queue of triggered events -->
     <section class="queue-panel">
@@ -1130,6 +1333,7 @@
       <div id="queueGroups"></div>
 
     </section>
+    </div>
   </div>
 
   <!-- Pretend chatbot (starts hidden). Opens over the right side of the screen. -->
@@ -1147,6 +1351,34 @@
 
   <!-- The toaster message (starts hidden) -->
   <div class="toast" id="toast"></div>
+
+  <!-- Schedule choice window (starts hidden) -->
+  <div class="overlay" id="scheduleOverlay">
+    <div class="upload-window">
+      <h3>Schedule service</h3>
+      <p id="scheduleFor"></p>
+      <div class="choice-buttons">
+        <button class="primary choice" onclick="scheduleOnline()">Schedule Online</button>
+        <button class="primary choice" onclick="callForCarService()">Call for Service</button>
+      </div>
+      <button class="secondary" onclick="closeOverlay('scheduleOverlay')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Pretend calendar for booking with your mechanic (starts hidden) -->
+  <div class="overlay" id="calendarOverlay">
+    <div class="upload-window calendar-window">
+      <h3>Your mechanic on file's schedule</h3>
+      <p id="calendarFor"></p>
+      <div class="cal-label">1. Pick a day</div>
+      <div class="cal-grid" id="calDays"></div>
+      <div class="cal-label">2. Pick a time</div>
+      <div class="cal-times" id="calTimes"><span class="cal-hint">Choose a day to see open times.</span></div>
+      <div class="cal-legend"><span class="dot open"></span> Open <span class="dot booked"></span> Booked</div>
+      <button class="primary" id="calConfirm" onclick="confirmAppointment()" disabled>Confirm appointment</button>
+      <button class="secondary" onclick="closeOverlay('calendarOverlay')">Cancel</button>
+    </div>
+  </div>
 
   <!-- The fake photo upload window (starts hidden).
        This is pretend: no real files are read from your computer. -->
@@ -1182,6 +1414,7 @@
       {
         type: "reminder",
         name: "Replace Fire Extinguisher",
+        asset: "home",   // counts toward the Home insurance score
         penalty: 12,   // insurance score points added while this is unaddressed
         title: "Reminder",
         message: "Fire Extinguisher in the garage needs to be replaced.",
@@ -1199,6 +1432,7 @@
       {
         type: "reminder",
         name: "Replace Furnace Filter",
+        asset: "home",   // counts toward the Home insurance score
         penalty: 7,    // insurance score points added while this is unaddressed
         title: "Reminder",
         message: "It is time to replace your furnace filters. " +
@@ -1217,6 +1451,7 @@
       {
         type: "reminder",
         name: "Replace Smoke Alarm",
+        asset: "home",   // counts toward the Home insurance score
         penalty: 15,   // insurance score points added while this is unaddressed
         title: "Reminder",
         message: "Your smoke alarm is due to be replaced. " +
@@ -1229,6 +1464,55 @@
           { label: "Mark as replaced",  style: "primary",   action: "replaced" },
           { label: "Order Replacement", style: "secondary", action: "orderReplacement" },
           { label: "Dismiss",           style: "secondary", action: "dismiss" }
+        ]
+      },
+      // ----- CAR REMINDERS -----
+      {
+        type: "reminder",
+        name: "Change Oil",
+        asset: "car",    // counts toward the Car insurance score
+        penalty: 6,
+        title: "Reminder",
+        message: "According to our records it is time to change your oil.",
+        serviceName: "Oil change",
+        uploadPrompt: "Please upload a photo of your oil change receipt.",
+        replacedMessage: "Oil change marked as done.",
+        buttons: [
+          { label: "Mark as Replaced", style: "primary",   action: "replaced" },
+          { label: "Schedule Change",  style: "secondary", action: "schedule" },
+          { label: "Dismiss",          style: "secondary", action: "dismiss" }
+        ]
+      },
+      {
+        type: "reminder",
+        name: "Replace Tires",
+        asset: "car",
+        penalty: 12,
+        title: "Reminder",
+        message: "According to our records it is time to change your tires.",
+        serviceName: "Tire replacement",
+        uploadPrompt: "Please upload a photo of your new tires with the receipt clearly visible.",
+        replacedMessage: "Tires marked as replaced.",
+        buttons: [
+          { label: "Mark as Replaced", style: "primary",   action: "replaced" },
+          { label: "Schedule Change",  style: "secondary", action: "schedule" },
+          { label: "Dismiss",          style: "secondary", action: "dismiss" }
+        ]
+      },
+      {
+        type: "reminder",
+        name: "Replace Brake Pads",
+        asset: "car",
+        penalty: 15,
+        title: "Reminder",
+        message: "According to our records it is time to change your brake pads.",
+        serviceName: "Brake pad replacement",
+        uploadPrompt: "Please upload a photo of your brake pad replacement receipt.",
+        replacedMessage: "Brake pads marked as replaced.",
+        buttons: [
+          { label: "Mark as Replaced", style: "primary",   action: "replaced" },
+          { label: "Schedule Change",  style: "secondary", action: "schedule" },
+          { label: "Dismiss",          style: "secondary", action: "dismiss" }
         ]
       },
       {
@@ -1275,7 +1559,7 @@
     // ---------- BUILD THE TRIGGER LISTS ----------
     // For each alert above, add a row with its name and a "Trigger" button.
     alerts.forEach(function (alertInfo) {
-      const listId = alertInfo.type === "reminder" ? "reminderTriggers" : "alertTriggers";
+      const listId = alertInfo.type === "reminder" ? "reminderTriggers-" + alertInfo.asset : "alertTriggers";
       const row = document.createElement("li");
 
       const label = document.createElement("span");
@@ -1312,10 +1596,11 @@
     });
 
     // ---------- INSURANCE SCORE ----------
-    // Demo numbers. Change these to try different homes.
-    const HOME_VALUE = 155000;        // cost of the house
-    const BASELINE_INSURANCE = 1200;  // estimated yearly insurance with no problems
-    const COST_PER_POINT = 6;         // each penalty point adds about $6 a year
+    // Demo numbers. Change these to try different homes and cars.
+    const SCORES = {
+      home: { value: 155000, baseline: 1200, costPerPoint: 6 },  // $155k house, ~$1,200/yr insurance
+      car:  { value: 25000,  baseline: 1800, costPerPoint: 9 }   // $25k car, ~$1,800/yr insurance
+    };
 
     // Reminders that have been triggered but not fixed yet.
     // Dismissing a reminder hides it from the queue, but it stays here
@@ -1374,31 +1659,40 @@
       document.getElementById("eventCard").scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
-    // Update the score card on the page.
+    // Update both score cards on the page.
     function renderScore() {
-      // The hidden counter: add up penalty points for every open issue.
+      renderScoreCard("home");
+      renderScoreCard("car");
+    }
+
+    // Update one score card ("home" or "car").
+    function renderScoreCard(asset) {
+      const settings = SCORES[asset];
+      const issues = openIssues.filter(function (i) { return i.asset === asset; });
+
+      // The hidden counter: add up penalty points for this card's open issues.
       let points = 0;
-      openIssues.forEach(function (i) { points = points + i.penalty; });
+      issues.forEach(function (i) { points = points + i.penalty; });
 
       const grade = gradeFor(points);
-      const added = points * COST_PER_POINT;
-      const gradeBox = document.getElementById("grade");
+      const added = points * settings.costPerPoint;
+      const gradeBox = document.getElementById(asset + "-grade");
       gradeBox.textContent = grade;
       gradeBox.className = "grade " + grade.charAt(0);   // "A", "B", "C" or "D" picks the color
 
       // Alert Girl: thumbs up for a perfect A+, otherwise thinking it over
-      document.getElementById("adjusterHappy").classList.toggle("show", points === 0);
-      document.getElementById("adjusterThinking").classList.toggle("show", points > 0);
+      document.getElementById(asset + "-happy").classList.toggle("show", points === 0);
+      document.getElementById(asset + "-thinking").classList.toggle("show", points > 0);
 
-      document.getElementById("homeValue").textContent = money(HOME_VALUE);
-      document.getElementById("baselineCost").textContent = money(BASELINE_INSURANCE) + " / yr";
-      document.getElementById("addedCost").textContent = "+" + money(added) + " / yr";
-      document.getElementById("totalCost").textContent = money(BASELINE_INSURANCE + added) + " / yr";
+      document.getElementById(asset + "-value").textContent = money(settings.value);
+      document.getElementById(asset + "-baseline").textContent = money(settings.baseline) + " / yr";
+      document.getElementById(asset + "-added").textContent = "+" + money(added) + " / yr";
+      document.getElementById(asset + "-total").textContent = money(settings.baseline + added) + " / yr";
 
-      // One line per open issue, showing what it adds to the cost
-      const rows = document.getElementById("issueRows");
+      // One clickable line per open issue, showing what it adds to the cost
+      const rows = document.getElementById(asset + "-issues");
       rows.innerHTML = "";
-      openIssues.forEach(function (i) {
+      issues.forEach(function (i) {
         const row = document.createElement("tr");
         row.className = "issue";
         row.title = "Click to add this back to your queue";
@@ -1406,17 +1700,17 @@
         const label = document.createElement("td");
         label.textContent = i.name;
         const cost = document.createElement("td");
-        cost.textContent = "+" + money(i.penalty * COST_PER_POINT) + " / yr";
+        cost.textContent = "+" + money(i.penalty * settings.costPerPoint) + " / yr";
         row.appendChild(label);
         row.appendChild(cost);
         rows.appendChild(row);
       });
 
-      const summary = document.getElementById("scoreSummary");
-      if (openIssues.length === 0) {
+      const summary = document.getElementById(asset + "-summary");
+      if (issues.length === 0) {
         summary.textContent = "Great job! You have no unaddressed reminders.";
       } else {
-        const count = openIssues.length;
+        const count = issues.length;
         summary.textContent = "Fixing your " + count + " unaddressed reminder" + (count > 1 ? "s" : "") +
                               " could save you about " + money(added) + " a year.";
       }
@@ -1645,6 +1939,32 @@
     <circle cx="106" cy="94" r="3.5" fill="#1e1e1e" stroke="none"/>
     <circle cx="138" cy="94" r="3.5" fill="#1e1e1e" stroke="none"/>
     <path d="M108 120 Q113 115 118 120 Q123 125 128 120 Q131 117 134 119" fill="none" stroke-width="3.5"/></g><text x="170" y="82" font-family="Arial, sans-serif" font-size="34" font-weight="900" fill="#2f78c9" stroke="#1e1e1e" stroke-width="1.5">?</text></svg>`;
+    const FACE_SLEEPY   = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="56 34 140 112" class="face-icon" role="img" aria-label="Alert Girl snoozing"><g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+    <path d="M97 95 Q104 99 111 95" fill="none" stroke-width="3.5"/>
+    <path d="M129 95 Q136 99 143 95" fill="none" stroke-width="3.5"/>
+    <path d="M112 118 Q120 122 128 118" fill="none" stroke-width="3.5"/>
+    <circle cx="93" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.6"/>
+    <circle cx="147" cy="110" r="5" fill="#f2a28f" stroke="none" opacity="0.6"/></g><g font-family="Arial, sans-serif" font-weight="900" fill="#2f78c9" stroke="#1e1e1e" stroke-width="1"><text x="160" y="80" font-size="18">z</text><text x="172" y="64" font-size="24">Z</text></g></svg>`;
+    const FACE_PHONE    = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="56 34 140 112" class="face-icon" role="img" aria-label="Alert Girl on the phone"><g stroke="#1e1e1e" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M70 128 Q62 44 120 40 Q178 44 170 128 Q158 136 146 126 V100 H94 V126 Q82 136 70 128 Z" fill="#d8452c"/>
+    <rect x="110" y="122" width="20" height="18" fill="#f6cfae"/>
+    <ellipse cx="120" cy="94" rx="38" ry="42" fill="#f6cfae"/>
+    <path d="M80 92 Q78 52 120 50 Q162 52 160 92 Q150 70 128 72 Q104 76 80 92 Z" fill="#d8452c"/>
+    <path d="M104 62 Q118 60 132 68" fill="none" stroke-width="2.5"/>
+    <path d="M122 102 Q119 109 124 110" fill="none" stroke-width="2.5"/>
+    <path d="M96 82 Q104 78 112 81" fill="none" stroke-width="3.5"/>
+    <path d="M128 81 Q136 78 144 82" fill="none" stroke-width="3.5"/>
+    <ellipse cx="104" cy="96" rx="3.5" ry="3.5" fill="#1e1e1e" stroke="none"/>
+    <ellipse cx="136" cy="96" rx="3.5" ry="3.5" fill="#1e1e1e" stroke="none"/>
+    <path d="M108 114 Q120 124 132 114" fill="none" stroke-width="3.5"/>
+    <rect x="150" y="84" width="14" height="34" rx="4" fill="#2e3a4a" stroke-width="3"/>
+    <ellipse cx="156" cy="112" rx="9" ry="10" fill="#f6cfae"/></g><g stroke="#1e1e1e" stroke-width="3" stroke-linecap="round" fill="none"><path d="M172 86 Q178 94 172 102"/><path d="M180 80 Q190 94 180 108"/></g></svg>`;
 
     // ---------- INSURANCE COMPANY BUTTONS (pretend, for the demo) ----------
     function openAccount() {
@@ -1706,34 +2026,135 @@
         openUpload(entry);
         return;
       }
+      // "Schedule Change" keeps it in the queue until an appointment is booked.
+      if (action === "schedule") {
+        openScheduleChoice(entry);
+        return;
+      }
 
       // Every other button finishes this event and takes it out of the queue.
       removeEvent(entry.id);
 
       if (action === "callPlumber") {
-        showToast("Contacting a local plumber now. Updates will be sent to your phone.", 10);
+        showToast("Contacting a local plumber now. Updates will be sent to your phone.", 10, FACE_PHONE);
       }
       else if (action === "snooze") {
         // e.g. "Smoke alarm alerts paused for 15 minutes"
-        showToast(info.name + " alerts paused for " + SNOOZE_MINUTES + " minutes", 5);
+        showToast(info.name + " alerts paused for " + SNOOZE_MINUTES + " minutes", 5, FACE_SLEEPY);
         // Put the same alert back in the queue after the snooze time.
         // minutes x 60 seconds x 1000 milliseconds
         setTimeout(function () { addEvent(info); }, SNOOZE_MINUTES * 60 * 1000);
       }
       else if (action === "maximizeAir") {
-        showToast("All system fans set to maximum and air quality alerts paused for 1 hour.", 10);
+        showToast("All system fans set to maximum and air quality alerts paused for 1 hour.", 10, FACE_HAPPY);
         // Put the alert back after 1 hour (60 minutes x 60 seconds x 1000 milliseconds).
         setTimeout(function () { addEvent(info); }, 60 * 60 * 1000);
       }
       else if (action === "orderReplacement") {
         resolveIssue(info);   // fixed! the insurance score improves
         render();
-        showToast(info.orderMessage, 10);
+        showToast(info.orderMessage, 10, FACE_HAPPY);
       }
       else if (action === "callService") {
-        showToast("Contacting a local service technician now. Updates will be sent to your phone.", 10);
+        showToast("Contacting a local service technician now. Updates will be sent to your phone.", 10, FACE_PHONE);
       }
       // "dismiss" needs nothing extra: the event is already out of the queue.
+    }
+
+    // ---------- SCHEDULING CAR SERVICE ----------
+    let scheduleFor = null;   // the queued car reminder being scheduled
+    let pickedDay = null;     // the day chosen on the calendar
+    let pickedTime = null;    // the time chosen on the calendar
+
+    function closeOverlay(id) {
+      document.getElementById(id).classList.remove("show");
+    }
+
+    // Step 1: ask how they want to schedule.
+    function openScheduleChoice(entry) {
+      scheduleFor = entry;
+      document.getElementById("scheduleFor").textContent =
+        "How would you like to schedule your " + entry.info.serviceName.toLowerCase() + "?";
+      document.getElementById("scheduleOverlay").classList.add("show");
+    }
+
+    // "Call for Service": pretend, for the demo. The reminder stays in the queue.
+    function callForCarService() {
+      closeOverlay("scheduleOverlay");
+      showToast("Pretend this called for service.", 6, FACE_PHONE);
+    }
+
+    // "Schedule Online": open the pretend calendar.
+    function scheduleOnline() {
+      closeOverlay("scheduleOverlay");
+      pickedDay = null;
+      pickedTime = null;
+      document.getElementById("calendarFor").textContent = "Booking: " + scheduleFor.info.serviceName;
+      document.getElementById("calConfirm").disabled = true;
+      document.getElementById("calTimes").innerHTML = '<span class="cal-hint">Choose a day to see open times.</span>';
+      drawCalendarDays();
+      document.getElementById("calendarOverlay").classList.add("show");
+    }
+
+    // Shows the next 14 days. Sundays are closed, and a few days are fully booked.
+    // (The "booked" days and times are made up so the demo looks realistic.)
+    function drawCalendarDays() {
+      const grid = document.getElementById("calDays");
+      grid.innerHTML = "";
+      for (let i = 1; i <= 14; i++) {
+        const day = new Date();
+        day.setHours(0, 0, 0, 0);
+        day.setDate(day.getDate() + i);
+
+        const button = document.createElement("button");
+        button.className = "cal-day";
+        button.innerHTML = day.toLocaleDateString([], { weekday: "short" }) +
+                           '<span class="num">' + day.getDate() + "</span>";
+        const closed = day.getDay() === 0;        // Sunday
+        const fullyBooked = i % 5 === 3;          // pretend some days are full
+        button.disabled = closed || fullyBooked;
+        button.title = closed ? "Closed" : fullyBooked ? "Fully booked" : "Open";
+        button.onclick = function () {
+          pickedDay = day;
+          pickedTime = null;
+          document.getElementById("calConfirm").disabled = true;
+          grid.querySelectorAll(".cal-day").forEach(function (b) { b.classList.remove("picked"); });
+          button.classList.add("picked");
+          drawCalendarTimes(i);
+        };
+        grid.appendChild(button);
+      }
+    }
+
+    // Shows hourly times from 8 AM to 4 PM. Some are already booked.
+    function drawCalendarTimes(dayNumber) {
+      const area = document.getElementById("calTimes");
+      area.innerHTML = "";
+      for (let hour = 8; hour <= 16; hour++) {
+        const label = (hour > 12 ? hour - 12 : hour) + ":00 " + (hour < 12 ? "AM" : "PM");
+        const button = document.createElement("button");
+        button.className = "cal-time";
+        button.textContent = label;
+        button.disabled = (dayNumber + hour) % 3 === 0;   // pretend these are taken
+        button.onclick = function () {
+          pickedTime = label;
+          area.querySelectorAll(".cal-time").forEach(function (b) { b.classList.remove("picked"); });
+          button.classList.add("picked");
+          document.getElementById("calConfirm").disabled = false;
+        };
+        area.appendChild(button);
+      }
+    }
+
+    // Booking the appointment counts as fixing the reminder, so the score improves.
+    function confirmAppointment() {
+      closeOverlay("calendarOverlay");
+      const info = scheduleFor.info;
+      const when = pickedDay.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) + " at " + pickedTime;
+      removeEvent(scheduleFor.id);
+      resolveIssue(info);
+      render();
+      showToast(info.serviceName + " scheduled with your mechanic for " + when + ".", 8, FACE_HAPPY);
     }
 
     // ---------- FAKE PHOTO UPLOAD ----------
@@ -1760,7 +2181,7 @@
       removeEvent(uploadFor.id);
       resolveIssue(uploadFor.info);   // fixed! the insurance score improves
       render();
-      showToast(uploadFor.info.replacedMessage, 5);
+      showToast(uploadFor.info.replacedMessage, 5, FACE_HAPPY);
     }
 
     // Cancel just closes the window. The reminder stays in the queue.
