@@ -2,9 +2,10 @@ import { inject } from '@angular/core';
 import { AskPrepared } from '../ai/ask-ai/ask-ai';
 import { AlertInfo, gradeFor, SCORES } from './alerts.catalog';
 import { AlertsService, QueueEntry } from './alerts.service';
+import { HOME_SENSORS, MISSING_SENSOR } from './home-sensors.mock';
 
-// Prompts for Gemini about the Overview page: the event queue, unaddressed reminders and the
-// home/car insurance scores (the same numbers the page shows).
+// Prompts for Gemini about the Overview page: the event queue, unaddressed reminders, the home/car
+// insurance scores and the home sensors (the same data the page shows).
 
 export interface AlertsSnapshot {
   queue: QueueEntry[]; // display order: alerts first, then reminders, oldest first
@@ -14,10 +15,11 @@ export interface AlertsSnapshot {
 
 export function buildAlertsSummaryPrompt(snapshot: AlertsSnapshot): string {
   return [
-    "You are the assistant for a home's alerts, reminders and insurance overview.",
+    "You are the assistant for a home's alerts, reminders, sensors and insurance overview.",
     'Write 2-4 short sentences of plain text (no markdown, no lists): what needs attention first',
-    '(active alerts), any unaddressed reminders and what they add to insurance costs, and the most useful',
-    'next step. If everything is clear, say so in one friendly sentence. Only use the data given.',
+    '(active alerts), any unaddressed reminders and what they add to insurance costs, sensors that need a',
+    'check, and the most useful next step. If everything is clear, say so in one friendly sentence.',
+    'Only use the data given.',
     '',
     describeAlertsState(snapshot),
   ].join('\n');
@@ -25,7 +27,7 @@ export function buildAlertsSummaryPrompt(snapshot: AlertsSnapshot): string {
 
 export function buildAlertsQuestionPrompt(question: string, snapshot: AlertsSnapshot): string {
   return [
-    "You are the assistant for a home's alerts, reminders and insurance overview.",
+    "You are the assistant for a home's alerts, reminders, sensors and insurance overview.",
     'Answer the question using the overview data below. Answer briefly and directly in plain text',
     '(no markdown, no headings). Only use the data given; if it does not cover the question, say so.',
     'The insurance numbers are demo estimates, not real quotes.',
@@ -47,7 +49,7 @@ export function injectOverviewQuestion(): (question: string) => AskPrepared {
       prompt: buildAlertsQuestionPrompt(question, snapshot),
       basis:
         `${queued} queued event${queued === 1 ? '' : 's'} · ` +
-        `${open} unaddressed reminder${open === 1 ? '' : 's'} · home & car insurance scores`,
+        `${open} unaddressed reminder${open === 1 ? '' : 's'} · insurance scores · home sensors`,
     };
   };
 }
@@ -74,6 +76,17 @@ export function describeAlertsState({ queue, openIssues, now }: AlertsSnapshot):
       );
     }
   }
+
+  lines.push('', '## Home sensors (demo data)');
+  for (const sensor of HOME_SENSORS) {
+    lines.push(
+      `- ${sensor.name} (${sensor.location}): ${sensor.reading}, ${sensor.status === 'ok' ? 'OK' : 'needs a check'}. ${sensor.detail}.`,
+    );
+  }
+  lines.push(
+    `- Not connected: ${MISSING_SENSOR.name}. Connecting one would save about ` +
+      `${money(MISSING_SENSOR.yearlySavings)}/yr on home insurance; it ${MISSING_SENSOR.reason}.`,
+  );
 
   lines.push('', '## Event queue (alerts first, then reminders; oldest first)');
   if (queue.length === 0) {
