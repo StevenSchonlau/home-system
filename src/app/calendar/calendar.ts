@@ -1,6 +1,8 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal, viewChild } from '@angular/core';
 import { CalendarService } from './calendar.service';
+import { CalendarEntryForm } from './calendar-entry-form';
+import { CalendarEntryStore } from './calendar-entry-store';
 import {
   addDays,
   CalendarItem,
@@ -13,12 +15,13 @@ import {
 
 @Component({
   selector: 'app-calendar',
-  imports: [DatePipe],
+  imports: [DatePipe, CalendarEntryForm],
   templateUrl: './calendar.html',
   styleUrl: './calendar.css',
 })
 export class Calendar {
   private readonly service = inject(CalendarService);
+  private readonly entries = inject(CalendarEntryStore);
   /** Omit to use shared CalendarService data. An explicit empty array shows an empty calendar. */
   readonly items = input<readonly CalendarItem[] | undefined>();
   readonly compact = input(false);
@@ -28,7 +31,9 @@ export class Calendar {
   protected readonly selectedDay = signal(startOfDay(new Date()));
   protected readonly views: CalendarView[] = ['day', 'week', 'month'];
   protected readonly weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  protected readonly data = computed(() => this.items() ?? this.service.items());
+  protected readonly data = computed(
+    () => this.items() ?? [...this.service.items(), ...this.entries.items()],
+  );
   protected readonly range = computed(() => period(this.anchor(), this.view()));
   protected readonly visibleItems = computed(() =>
     itemsInRange(this.data(), this.range().start, this.range().end),
@@ -61,6 +66,10 @@ export class Calendar {
         : `${format(range.start)} – ${format(addDays(range.end, -1))}`;
   });
   protected readonly detail = signal<CalendarItem | null>(null);
+  protected readonly entryForm = viewChild(CalendarEntryForm);
+  protected editable(item: CalendarItem): boolean {
+    return this.items() === undefined && this.entries.owns(item.id);
+  }
   protected readonly asDate = itemDate;
 
   protected changeView(view: CalendarView): void {
@@ -93,9 +102,21 @@ export class Calendar {
     this.selectedDay.set(date);
     this.anchor.set(date);
     this.detail.set(null);
+    if (this.items() === undefined) {
+      this.entryForm()?.openDate(date, itemsInRange(this.data(), date, addDays(date, 1)));
+    }
   }
   protected selectItem(item: CalendarItem): void {
-    this.detail.set(item);
+    this.detail.set(null);
+    if (this.editable(item)) this.entryForm()?.edit(item);
+    else this.detail.set(item);
     this.itemSelected.emit(item);
+  }
+
+  protected entryCreated(item: CalendarItem): void {
+    const date = startOfDay(itemDate(item.start));
+    this.anchor.set(date);
+    this.selectedDay.set(date);
+    this.detail.set(null);
   }
 }

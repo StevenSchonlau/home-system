@@ -15,9 +15,9 @@ describe('Calendar with the existing dashboard', () => {
   let savedLayout: string | null;
   let savedRange: string | null;
   beforeEach(() => {
-    savedLayout = localStorage.getItem('dashboard-config');
+    savedLayout = localStorage.getItem('dashboard-config:calendar-regression');
     savedRange = localStorage.getItem('dashboard-time-range');
-    localStorage.removeItem('dashboard-config');
+    localStorage.removeItem('dashboard-config:calendar-regression');
     localStorage.removeItem('dashboard-time-range');
     TestBed.configureTestingModule({
       providers: [
@@ -29,10 +29,12 @@ describe('Calendar with the existing dashboard', () => {
             label: (key: string) => key,
             latest: () => '21',
             series: signal(new Map()),
+            sensorTypes: signal([]),
           },
         },
       ],
     });
+    TestBed.inject(AccountService).select('calendar-regression');
     TestBed.inject(DashboardConfigService).set({
       tiles: [{ id: 'temperature', size: '1x1', fields: ['temperature:value'] }],
     });
@@ -41,7 +43,7 @@ describe('Calendar with the existing dashboard', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
     for (const [key, value] of [
-      ['dashboard-config', savedLayout],
+      ['dashboard-config:calendar-regression', savedLayout],
       ['dashboard-time-range', savedRange],
     ]) {
       if (value === null) localStorage.removeItem(key!);
@@ -169,7 +171,9 @@ describe('Calendar with the existing dashboard', () => {
     await harness.fixture.whenStable();
     harness.detectChanges();
     expect(config.config()).toEqual(layout);
-    expect(JSON.parse(localStorage.getItem(storageKey(TestBed.inject(AccountService).selected()))!)).toEqual(layout);
+    expect(
+      JSON.parse(localStorage.getItem(storageKey(TestBed.inject(AccountService).selected()))!),
+    ).toEqual(layout);
     config.moveTile(0, 1);
     harness.detectChanges();
     expect(
@@ -180,7 +184,10 @@ describe('Calendar with the existing dashboard', () => {
     root.querySelector<HTMLButtonElement>('.grid .remove')!.click();
     harness.detectChanges();
     expect(config.config().tiles.map((tile) => tile.id)).toEqual(['door']);
-    expect(JSON.parse(localStorage.getItem(storageKey(TestBed.inject(AccountService).selected()))!).tiles).toHaveLength(1);
+    expect(
+      JSON.parse(localStorage.getItem(storageKey(TestBed.inject(AccountService).selected()))!)
+        .tiles,
+    ).toHaveLength(1);
     expect(root.querySelector('app-calendar-widget')).not.toBeNull();
     Object.defineProperty(input, 'files', {
       configurable: true,

@@ -26,7 +26,27 @@ For additional placements, import `CalendarWidget` from `./calendar/calendar-wid
 
 ## Existing app models
 
-`DashboardConfig` / `DashboardTileConfig` currently describe sensor tiles (`size`, sensor `fields`, and `showGraph`); they do not represent scheduled items. `SensorReading.dateTime` timestamps observations, not upcoming tasks or appointments. The calendar does not convert those readings into schedule entries. No task/appointment model or backend exists in the current app, so producers adapt their future models to `CalendarItem` at their feature boundary. Both dashboard and full page read the same root-provided `CalendarService`, using the app's existing standalone-component and signal patterns. The calendar remains empty until a producer supplies items.
+`DashboardConfig` / `DashboardTileConfig` describe sensor tiles; they do not represent scheduled items. `SensorReading.dateTime` timestamps observations, not upcoming tasks or appointments. The calendar does not convert those readings into schedule entries. Both dashboard and full page read the root-provided `CalendarService` and `CalendarEntryStore`, using the app's existing standalone-component and signal patterns.
+
+## Creating events and reminders
+
+The full calendar provides **Add event** and **Add reminder**; the dashboard widget uses a compact plus button. Both open the same modal with an Event/Reminder selector for creation. Date clicks open an item picker; browser-local entries can be edited or deleted with confirmation. Producer entries remain read-only and retain the `itemSelected` output. Events require a start and end; reminders use one target date/time. Saving selects the item's day automatically. The month grid uses the picker instead of a separate selected-day list; explicit `[items]` calendars retain their read-only agenda.
+
+Records use the five database columns exactly:
+
+| Column | Event | Reminder |
+| --- | --- | --- |
+| `TargetDate` | `null` | Target timestamp |
+| `StartDate` | Start timestamp | `null` |
+| `EndDate` | Exclusive end timestamp | `null` |
+| `Subject` | Title | Title |
+| `Body` | Notes | Notes |
+
+This convention distinguishes the two kinds without adding a database type column. Confirm it with the backend before connecting its API. Form dates use browser-local time and serialize to UTC ISO timestamps. Fetched database timestamps without a timezone are treated as UTC, matching the existing sensor API convention; date-only values stay local all-day dates.
+
+Creation, editing, and deletion save to browser localStorage (`home-system-calendar-v1`), separated by `AccountService.selected()`. Changes persist across reloads in that browser. Storage errors leave the modal open and do not publish unsaved changes. The group's `CalendarRemindersService` separately polls `GET /Calendar` for reminders due today and supplies the Overview alert queue. Local modal entries do not reach that endpoint or queue and do not sync across devices. Before connecting writes, establish the API's mutation routes, account-scoping rules, IDs, and timestamp/null conventions; do not infer those contracts from the database column names. The read-only API currently uses camelCase fields, whereas `CalendarRecord` uses database column names.
+
+`recordToItem(id, record)` maps a database row into the display model. `CalendarService.setRecords(source, [{ id, record }])` publishes fetched rows using stable IDs supplied by the backend or producer; IDs are not inferred from mutable subject/body text. The API endpoint, ID convention, and account-scoping contract still need to be supplied for database reads/writes. Browser-local entries and producer items are shown together; explicit `[items]` input continues to override both.
 
 Other app features can inject `CalendarService` and publish their data:
 

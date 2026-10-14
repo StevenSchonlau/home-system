@@ -1,0 +1,135 @@
+<div class="create-actions" [class.compact-actions]="compact()">
+  @if (compact()) {
+    <button
+      type="button"
+      class="btn btn-primary add-icon"
+      aria-label="Create event or reminder"
+      title="Create event or reminder"
+      (click)="begin('event')"
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+        <path
+          d="M8 2v12M2 8h12"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+  } @else {
+    <button type="button" class="btn btn-primary" (click)="begin('event')">+ Add event</button>
+    <button type="button" class="btn" (click)="begin('reminder')">+ Add reminder</button>
+  }
+</div>
+@if (status()) {
+  <p role="status">{{ status() }}</p>
+}
+<dialog #dialog (cancel)="close()" (click)="backdropClick($event)" aria-label="Calendar event">
+  <button
+    type="button"
+    class="modal-close btn"
+    aria-label="Close calendar dialog"
+    (click)="close()"
+  >
+    ×
+  </button>
+  @if (picking()) {
+    <div class="event-picker">
+      <h3>{{ pickerDate() | date: 'EEEE, MMMM d' }}</h3>
+      <p class="hint">Choose an event to edit.</p>
+      <nav class="day-items" aria-label="Events on selected date">
+        @for (item of dayItems(); track item.id) {
+          <button type="button" class="btn" (click)="selectItem(item)">
+            <strong>{{ item.title }}</strong>
+            <span
+              >{{ item.kind || 'event' }} ·
+              {{
+                item.allDay || item.start.length === 10
+                  ? 'All day'
+                  : (asDate(item.start) | date: 'shortTime')
+              }}</span
+            >
+          </button>
+        } @empty {
+          <p class="hint">No events on this date.</p>
+        }
+      </nav>
+      <div class="create-actions">
+        <button type="button" class="btn btn-primary" (click)="begin('event')">+ New event</button>
+        <button type="button" class="btn" (click)="close()">Cancel</button>
+      </div>
+    </div>
+  } @else {
+    <form
+      #entryForm="ngForm"
+      (ngSubmit)="save()"
+      class="entry-form"
+      [attr.aria-label]="editing() ? 'Edit calendar item' : 'Create calendar item'"
+    >
+      <h3>
+        {{ editing() ? 'Edit ' + kind() : kind() === 'event' ? 'New event' : 'New reminder' }}
+      </h3>
+      @if (!editing()) {
+        <label>
+          Type
+          <select name="kind" [ngModel]="kind()" (ngModelChange)="chooseKind($event)">
+            <option value="event">Event</option>
+            <option value="reminder">Reminder</option>
+          </select>
+        </label>
+      }
+      <p class="hint">
+        {{
+          kind() === 'event'
+            ? 'Reserve a block of time with a start and end.'
+            : 'Set a single date and time to remember something.'
+        }}
+      </p>
+      <label>Subject <input name="subject" [(ngModel)]="subject" required maxlength="200" /></label>
+      @if (kind() === 'event') {
+        <div class="dates">
+          <label
+            >Starts <input name="start" type="datetime-local" [(ngModel)]="start" required
+          /></label>
+          <label>Ends <input name="end" type="datetime-local" [(ngModel)]="end" required /></label>
+        </div>
+      } @else {
+        <label
+          >Remind me on <input name="target" type="datetime-local" [(ngModel)]="target" required
+        /></label>
+      }
+      <label>Notes <textarea name="body" [(ngModel)]="body" rows="3"></textarea></label>
+      <p class="hint">
+        Times use your local timezone. Saved in this browser for {{ accounts.selected() }}; database
+        sync and notifications are not connected yet.
+      </p>
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      <div class="create-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="entryForm.invalid">
+          Save {{ kind() }}
+        </button>
+        <button type="button" class="btn" (click)="close()">Cancel</button>
+        @if (pickerDate()) {
+          <button type="button" class="btn" (click)="showPicker()">Back to events</button>
+        }
+        @if (editing() && !confirmingDelete()) {
+          <button type="button" class="btn delete" (click)="confirmingDelete.set(true)">
+            Delete {{ kind() }}
+          </button>
+        }
+      </div>
+      @if (confirmingDelete()) {
+        <div class="delete-confirmation" role="group" aria-label="Confirm deletion">
+          <p>Delete this {{ kind() }}?</p>
+          <button type="button" class="btn delete" (click)="deleteItem()">Confirm delete</button>
+          <button type="button" class="btn" (click)="confirmingDelete.set(false)">
+            Keep {{ kind() }}
+          </button>
+        </div>
+      }
+    </form>
+  }
+</dialog>

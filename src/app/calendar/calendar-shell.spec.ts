@@ -29,6 +29,7 @@ describe('Calendar in the application shell', () => {
           useValue: {
             error: signal(''),
             series: signal(new Map()),
+            sensorTypes: signal([]),
             label: (key: string) => key,
             latest: () => null,
           },

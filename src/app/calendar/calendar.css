@@ -4,6 +4,7 @@
   font-family: system-ui, sans-serif;
 }
 .calendar {
+  position: relative;
   background: var(--surface, #fff);
   border: 1px solid var(--border, #dbe5e8);
   border-radius: 18px;
@@ -151,7 +152,20 @@ button:focus-visible {
   gap: 16px;
   padding: 14px;
   border: 1px solid var(--border, #e2eaec);
+  border-left: 4px solid var(--accent);
   width: 100%;
+}
+
+.item.reminder {
+  border-left-style: dashed;
+}
+.preview.reminder {
+  background: var(--surface);
+  border: 1px dashed var(--accent);
+}
+.kind-label {
+  color: var(--text-muted);
+  font-weight: 600;
 }
 .date {
   display: grid;
@@ -215,6 +229,9 @@ button:focus-visible {
 .compact header {
   flex-wrap: wrap;
   margin-bottom: 16px;
+}
+.compact header > div:first-child {
+  padding-right: 44px;
 }
 .compact .agenda {
   max-height: 320px;

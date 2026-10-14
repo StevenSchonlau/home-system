@@ -12,6 +12,14 @@
       }
     </div>
   </header>
+  @if (items() === undefined) {
+    <app-calendar-entry-form
+      [compact]="compact()"
+      (created)="entryCreated($event)"
+      (deleted)="detail.set(null)"
+      (selected)="selectItem($event)"
+    />
+  }
   <div class="navigation">
     <h3 aria-live="polite">{{ label() }}</h3>
     <div>
@@ -38,7 +46,12 @@
         >
           <span class="number">{{ day.date.getDate() }}</span>
           @for (item of day.items.slice(0, 2); track item.id) {
-            <span class="preview" [class.done]="item.completed">{{ item.title }}</span>
+            <span
+              class="preview"
+              [class.reminder]="item.kind === 'reminder'"
+              [class.done]="item.completed"
+              >{{ item.kind === 'reminder' ? 'Reminder: ' : '' }}{{ item.title }}</span
+            >
           }
           @if (day.items.length > 2) {
             <span class="more">+{{ day.items.length - 2 }} more</span>
@@ -46,34 +59,43 @@
         </button>
       }
     </div>
-    <h3 class="agenda-heading">{{ selectedDay() | date: 'EEEE, MMMM d' }}</h3>
   }
-  <div class="agenda" aria-live="polite">
-    @for (item of agenda(); track item.id) {
-      <button type="button" class="item" (click)="selectItem(item)" [class.done]="item.completed">
-        <span class="date"
-          ><strong>{{ asDate(item.start) | date: 'MMM d' }}</strong
-          ><span>{{
-            item.allDay || item.start.length === 10
-              ? 'All day'
-              : (asDate(item.start) | date: 'shortTime')
-          }}</span></span
+  @if (compact() || view() !== 'month' || items() !== undefined) {
+    <div class="agenda" aria-live="polite">
+      @for (item of agenda(); track item.id) {
+        <button
+          type="button"
+          class="item"
+          [class.reminder]="item.kind === 'reminder'"
+          (click)="selectItem(item)"
+          [class.done]="item.completed"
         >
-        <span class="item-body"
-          ><strong>{{ item.title }}</strong
-          ><span
-            >{{ item.kind || 'event' }}{{ item.completed ? ' · Completed' : ''
-            }}{{ item.location ? ' · ' + item.location : '' }}</span
-          ></span
-        ><span aria-hidden="true">›</span>
-      </button>
-    } @empty {
-      <div class="empty">
-        <strong>A little breathing room</strong>
-        <p>No scheduled items for this {{ !compact() && view() === 'month' ? 'day' : view() }}.</p>
-      </div>
-    }
-  </div>
+          <span class="date"
+            ><strong>{{ asDate(item.start) | date: 'MMM d' }}</strong
+            ><span>{{
+              item.allDay || item.start.length === 10
+                ? 'All day'
+                : (asDate(item.start) | date: 'shortTime')
+            }}</span></span
+          >
+          <span class="item-body"
+            ><strong>{{ item.title }}</strong
+            ><span
+              >{{ item.kind || 'event' }}{{ item.completed ? ' · Completed' : ''
+              }}{{ item.location ? ' · ' + item.location : '' }}</span
+            ></span
+          ><span aria-hidden="true">›</span>
+        </button>
+      } @empty {
+        <div class="empty">
+          <strong>A little breathing room</strong>
+          <p>
+            No scheduled items for this {{ !compact() && view() === 'month' ? 'day' : view() }}.
+          </p>
+        </div>
+      }
+    </div>
+  }
   @if (detail(); as item) {
     <aside class="detail" aria-label="Selected item details">
       <button
@@ -85,6 +107,15 @@
         ×
       </button>
       <h3>{{ item.title }}</h3>
+      <p class="kind-label">
+        {{
+          item.kind === 'reminder'
+            ? 'Reminder · Target date'
+            : item.kind === 'task'
+              ? 'Task'
+              : 'Event · Scheduled time'
+        }}
+      </p>
       <p>
         {{
           asDate(item.start)

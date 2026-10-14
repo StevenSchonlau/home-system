@@ -1,0 +1,163 @@
+:host {
+  display: block;
+  margin-bottom: 20px;
+}
+.create-actions,
+.dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.compact-actions {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+.add-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 24px;
+  line-height: 1;
+}
+.entry-form,
+.event-picker {
+  display: grid;
+  gap: 18px;
+  padding: 0;
+}
+dialog {
+  box-sizing: border-box;
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  padding: 32px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 24px 80px #0006;
+}
+dialog::backdrop {
+  background: #0009;
+}
+.modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  padding: 0;
+  font-size: 22px;
+}
+.day-items {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+.day-items button {
+  box-sizing: border-box;
+  display: grid;
+  height: auto;
+  min-height: 72px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  justify-content: stretch;
+  justify-items: start;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.day-items span {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-transform: capitalize;
+}
+.delete {
+  color: var(--danger, #c0392b);
+}
+.delete-confirmation {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+h3 {
+  margin: 0 0 8px;
+  padding-right: 44px;
+}
+.entry-form h3,
+.event-picker h3 {
+  margin: 0;
+}
+.hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.entry-form .hint,
+.event-picker .hint {
+  margin: 0;
+}
+label {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+}
+.dates label {
+  flex: 1;
+  min-width: min(180px, 100%);
+}
+.dates {
+  gap: 16px;
+}
+input,
+select,
+textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+  font: inherit;
+}
+.entry-form input,
+.entry-form select {
+  height: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  line-height: normal;
+}
+.entry-form textarea {
+  min-height: 104px;
+  padding: 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+@media (max-width: 480px) {
+  dialog {
+    padding: 24px;
+  }
+  .dates label {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.error {
+  color: var(--danger);
+}

@@ -1,8 +1,16 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { CalendarItem, itemDate } from './calendar.models';
+import { CalendarRecord, recordToItem } from './calendar-record.models';
 
 @Injectable({ providedIn: 'root' })
 export class CalendarService {
+  /** Adapt fetched database rows using a stable ID supplied by the API or producer. */
+  setRecords(source: string, records: readonly { id: string; record: CalendarRecord }[]): void {
+    this.setItems(
+      source,
+      records.map((row) => recordToItem(row.id, row.record)),
+    );
+  }
   private readonly sources = signal<Record<string, readonly CalendarItem[]>>({});
   readonly items = computed(() =>
     Object.entries(this.sources()).flatMap(([source, items]) =>
