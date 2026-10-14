@@ -1,0 +1,116 @@
+:host {
+  display: block;
+}
+
+/* The question bar: same card look as the dashboard toolbar. */
+.bar {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.bar:focus-within {
+  border-color: var(--accent);
+}
+
+.spark {
+  flex: none;
+  align-self: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-left: 0.9rem;
+  fill: var(--accent);
+}
+
+input {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0 0.9rem 0 0.75rem;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+input:focus {
+  outline: none;
+}
+
+input::placeholder {
+  color: var(--text-muted);
+}
+
+/* The answer card below the bar. */
+.answer {
+  margin-top: 0.75rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.question {
+  flex: 1;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Explicit padding/margin: the Overview page has a general button rule that would apply here. */
+.close {
+  flex: none;
+  margin: 0;
+  padding: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+p {
+  margin: 0;
+}
+
+.text {
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.meta {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 0.9rem;
+}

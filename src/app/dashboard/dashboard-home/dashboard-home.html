@@ -51,6 +51,8 @@
         </div>
       </div>
 
+      <app-ask-ai class="ask-ai" [prepare]="prepareQuestion" />
+
       @if (importError()) {
         <p class="error" role="alert">{{ importError() }}</p>
       }
@@ -97,40 +99,45 @@
                 </button>
               </div>
             }
-            <!-- Disabled while editing so dragging doesn't open the graph. -->
-            <a
-              class="tile-link"
-              [routerLink]="['/dashboard/tile', tile.id]"
-              [attr.tabindex]="editing() ? -1 : null"
-              aria-label="Open graph"
-            >
-              @switch (display(tile)) {
-                @case ('line') {
-                  <app-sensor-chart [fields]="tile.fields" kind="line" />
+            @if (display(tile) === 'ai') {
+              <!-- Not a link: it has its own Refresh button. -->
+              <app-ai-summary [fields]="tile.fields" />
+            } @else {
+              <!-- Disabled while editing so dragging doesn't open the graph. -->
+              <a
+                class="tile-link"
+                [routerLink]="['/dashboard/tile', tile.id]"
+                [attr.tabindex]="editing() ? -1 : null"
+                aria-label="Open graph"
+              >
+                @switch (display(tile)) {
+                  @case ('line') {
+                    <app-sensor-chart [fields]="tile.fields" kind="line" />
+                  }
+                  @case ('bar') {
+                    <app-sensor-chart [fields]="tile.fields" kind="bar" />
+                  }
+                  @case ('pie') {
+                    <app-sensor-chart
+                      [fields]="tile.fields"
+                      kind="pie"
+                      [compact]="tile.size === '1x1'"
+                    />
+                  }
+                  @case ('stats') {
+                    <app-stats-summary [fields]="tile.fields" />
+                  }
+                  @default {
+                    <app-state-entries
+                      [fields]="tile.fields"
+                      [colorMode]="tile.colorMode ?? 'none'"
+                      [thresholds]="tile.thresholds ?? {}"
+                      [showTrend]="tile.showTrend ?? false"
+                    />
+                  }
                 }
-                @case ('bar') {
-                  <app-sensor-chart [fields]="tile.fields" kind="bar" />
-                }
-                @case ('pie') {
-                  <app-sensor-chart
-                    [fields]="tile.fields"
-                    kind="pie"
-                    [compact]="tile.size === '1x1'"
-                  />
-                }
-                @case ('stats') {
-                  <app-stats-summary [fields]="tile.fields" />
-                }
-                @default {
-                  <app-state-entries
-                    [fields]="tile.fields"
-                    [colorMode]="tile.colorMode ?? 'none'"
-                    [thresholds]="tile.thresholds ?? {}"
-                    [showTrend]="tile.showTrend ?? false"
-                  />
-                }
-              }
-            </a>
+              </a>
+            }
           </app-dashboard-tile>
         }
       </div>

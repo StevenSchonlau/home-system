@@ -4,7 +4,8 @@ export type TileSize = '1x1' | '1x2' | '1x3';
 // What a tile shows:
 //   values: latest reading per entry     line: numbers over time (text entries fall back to bar)
 //   bar / pie: how often each value appears     stats: min / max / avg / std dev...
-export type TileDisplay = 'values' | 'line' | 'bar' | 'pie' | 'stats';
+//   ai: a Gemini-written summary of the data (see tile-content/ai-summary.ts)
+export type TileDisplay = 'values' | 'line' | 'bar' | 'pie' | 'stats' | 'ai';
 export type ChartKind = 'line' | 'bar' | 'pie';
 
 // How a value tile colors its numbers (one mode per tile).

@@ -8,6 +8,10 @@ h1 {
 }
 
 .toolbar {
+  margin-bottom: 0.75rem;
+}
+
+.ask-ai {
   margin-bottom: 1.25rem;
 }
 

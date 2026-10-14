@@ -97,6 +97,14 @@
 }
 
 h1 { margin: 0 0 6px; }
+
+/* AI question bar and overview, full width above the two columns */
+.ai {
+  display: grid;
+  gap: 12px;
+  max-width: 1240px;
+  margin: 12px 0 24px;
+}
 button {
   font-size: 15px;
   padding: 10px 16px;
@@ -176,20 +184,63 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Buttons on the right side of the score card */
 /* Company buttons, centered at the top of the right column */
-.score-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+/* Insurer card: four action tiles in a 2x2 grid */
+.insurer {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--card-shadow);
 }
-.action-btn {
+.insurer-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.insurer-head h2 { margin: 0; font-size: 18px; }
+.insurer-kicker { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-3); }
+.insurer-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.action-tile {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: var(--sunken);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.action-tile:hover {
+  border-color: var(--reminder);
+  box-shadow: var(--card-shadow);
+  transform: translateY(-1px);
+}
+.action-tile:focus-visible { outline: 2px solid var(--reminder); outline-offset: 2px; }
+.action-icon {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   background: var(--brand);
   color: white;
-  width: 240px;
-  margin: 0;
-  padding: 12px 16px;
 }
-.action-btn:hover { background: var(--brand-hover); }
+.action-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.action-label { font-size: 15px; font-weight: 700; }
+.action-sub { font-size: 12px; color: var(--ink-3); }
+@media (max-width: 420px) {
+  .insurer-actions { grid-template-columns: 1fr; }
+}
 
 /* ----- Pretend chatbot panel ----- */
 .chat-panel {
