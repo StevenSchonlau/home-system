@@ -21,6 +21,6 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('header')?.textContent).toContain('Home System');
+    expect(compiled.querySelector('header')?.textContent).toContain('Progressive Pulse');
   });
 });

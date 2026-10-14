@@ -18,12 +18,42 @@ header {
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   color: inherit;
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.brand-logo {
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+}
+
+.logo-tile {
+  fill: var(--accent);
+}
+
+.logo-house,
+.logo-pulse {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logo-house {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.8;
+}
+
+.logo-pulse {
+  stroke: #fff;
+  stroke-width: 2.4;
 }
 
 nav {
