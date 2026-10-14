@@ -40,6 +40,18 @@ export class SensorDataService {
   private readonly readings = signal<SensorReading[]>([]);
   readonly error = signal('');
 
+  // Sensor names available for the selected account, based on received readings.
+  readonly sensorTypes = computed(() => {
+    const account = this.accounts.selected();
+    return [
+      ...new Set(
+        this.readings()
+          .filter((reading) => reading.accountName === account)
+          .map((reading) => reading.sensorType),
+      ),
+    ].sort((a, b) => a.localeCompare(b));
+  });
+
   // Readings for the selected account (exact, case-sensitive match), grouped into one series per sensorType + DataKey.
   readonly series = computed(() => {
     const byKey = new Map<string, SensorSeries>();
@@ -72,11 +84,14 @@ export class SensorDataService {
 
   constructor() {
     const fetchReadings: () => Observable<SensorReading[]> = USE_MOCK_DATA
-      ? ((api) => () => of(api()))(createMockApi())
+      ? (
+          (api) => () =>
+            of(api())
+        )(createMockApi())
       : () => {
-        console.log('SensorDataService.fetchReadings', API_URL);
-        return this.http.get<SensorReading[]>(API_URL);
-      };
+          console.log('SensorDataService.fetchReadings', API_URL);
+          return this.http.get<SensorReading[]>(API_URL);
+        };
 
     timer(0, POLL_INTERVAL_MS)
       .pipe(

@@ -1,5 +1,13 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../account.service';
 import { CalendarWidget } from '../../calendar/calendar-widget';
@@ -35,16 +43,23 @@ import { WeatherWidget } from '../widgets/weather-widget';
   templateUrl: './dashboard-home.html',
 })
 export class DashboardHome {
+  @ViewChild('addSensorDialog') private addSensorDialog!: ElementRef<HTMLDialogElement>;
+  @ViewChild('deleteSensorDialog') private deleteSensorDialog!: ElementRef<HTMLDialogElement>;
+
   protected readonly configService = inject(DashboardConfigService);
   protected readonly sensorData = inject(SensorDataService);
   private readonly accounts = inject(AccountService);
   protected readonly editing = signal(false);
   protected readonly importError = signal('');
+  protected readonly sensorNotice = signal('');
+  protected readonly deleteSensorName = signal('');
   protected readonly display = tileDisplay;
 
   // "Good morning, Steven". Rechecked every minute so it changes over while the page is open.
   private readonly now = signal(new Date());
-  protected readonly greeting = computed(() => `${partOfDay(this.now())}, ${this.accounts.selected()}`);
+  protected readonly greeting = computed(
+    () => `${partOfDay(this.now())}, ${this.accounts.selected()}`,
+  );
 
   constructor() {
     const timer = setInterval(() => this.now.set(new Date()), 60_000);
@@ -53,6 +68,31 @@ export class DashboardHome {
 
   protected drop(event: CdkDragDrop<unknown>): void {
     this.configService.moveTile(event.previousIndex, event.currentIndex);
+  }
+
+  protected openAddSensor(): void {
+    this.sensorNotice.set('');
+    this.addSensorDialog.nativeElement.showModal();
+  }
+
+  protected openDeleteSensor(): void {
+    this.sensorNotice.set('');
+    this.deleteSensorName.set('');
+    this.deleteSensorDialog.nativeElement.showModal();
+  }
+
+  protected submitAddSensor(event: SubmitEvent): void {
+    event.preventDefault();
+    this.sensorNotice.set(
+      'Sensor creation is not connected to a sensor registry yet. No changes were made.',
+    );
+  }
+
+  protected confirmDeleteSensor(event: SubmitEvent): void {
+    event.preventDefault();
+    this.sensorNotice.set(
+      'Sensor deletion is not connected to a sensor registry yet. No changes were made.',
+    );
   }
 
   protected exportConfig(): void {
@@ -81,7 +121,9 @@ export class DashboardHome {
       }
       this.configService.set(parsed as DashboardConfig);
     } catch {
-      this.importError.set('That file is not a valid dashboard config (expected { "tiles": [...] }).');
+      this.importError.set(
+        'That file is not a valid dashboard config (expected { "tiles": [...] }).',
+      );
     }
   }
 }

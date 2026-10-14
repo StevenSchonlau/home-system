@@ -3,12 +3,43 @@
 }
 
 h1 {
-  margin: 0 0 1rem;
+  margin: 0;
   font-size: 1.6rem;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sensor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.25rem;
 }
 
 .toolbar {
   margin-bottom: 1.25rem;
+}
+
+@media (max-width: 600px) {
+  .dashboard-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sensor-actions {
+    justify-content: flex-start;
+  }
 }
 
 .empty {
@@ -63,6 +94,78 @@ h1 {
 
 .error {
   color: var(--danger);
+}
+
+.sensor-dialog {
+  width: min(32rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.sensor-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.sensor-form,
+.sensor-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sensor-form {
+  gap: 1rem;
+}
+
+.sensor-form label {
+  gap: 0.35rem;
+  font-weight: 500;
+}
+
+.sensor-form label span,
+.dialog-note {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.sensor-form input,
+.sensor-form select,
+.sensor-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.sensor-form textarea {
+  resize: vertical;
+}
+
+.dialog-note,
+.dialog-notice,
+.sensor-form > p:not(.dialog-note, .dialog-notice) {
+  margin: 0;
+}
+
+.dialog-notice {
+  color: var(--warn);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .grid {

@@ -1,5 +1,13 @@
 <section aria-labelledby="dashboard-title">
-  <h1 id="dashboard-title">{{ greeting() }}</h1>
+  <div class="dashboard-header">
+    <h1 id="dashboard-title">{{ greeting() }}</h1>
+    <div class="sensor-actions">
+      <button type="button" class="btn btn-danger" (click)="openDeleteSensor()">
+        Delete Sensor
+      </button>
+      <button type="button" class="btn btn-primary" (click)="openAddSensor()">Add Sensor</button>
+    </div>
+  </div>
 
   <div class="layout">
     <div class="content">
@@ -142,4 +150,81 @@
       <app-air-quality-widget />
     </aside>
   </div>
+
+  <dialog #addSensorDialog class="sensor-dialog" aria-labelledby="add-sensor-title">
+    <form class="sensor-form" (submit)="submitAddSensor($event)">
+      <h2 id="add-sensor-title">Add Sensor</h2>
+      <p class="dialog-note">
+        This form is not connected to a sensor registry yet. Submitting it will not save a sensor or
+        add options to the dashboard tile form.
+      </p>
+      <label>
+        Sensor Name
+        <input type="text" name="sensorName" required />
+      </label>
+      <label>
+        Sensor location <span>(optional)</span>
+        <input type="text" name="sensorLocation" />
+      </label>
+      <label>
+        Date added
+        <input type="date" name="dateAdded" required />
+      </label>
+      <label>
+        Description <span>(optional)</span>
+        <textarea name="description" rows="3"></textarea>
+      </label>
+      @if (sensorNotice()) {
+        <p class="dialog-notice" role="status">{{ sensorNotice() }}</p>
+      }
+      <div class="dialog-actions">
+        <button type="button" class="btn" (click)="addSensorDialog.close()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Sensor</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog #deleteSensorDialog class="sensor-dialog" aria-labelledby="delete-sensor-title">
+    <form class="sensor-form" (submit)="confirmDeleteSensor($event)">
+      <h2 id="delete-sensor-title">Delete Sensor</h2>
+      <label>
+        Sensor Name
+        <select
+          name="sensorName"
+          required
+          [value]="deleteSensorName()"
+          (change)="deleteSensorName.set($any($event.target).value)"
+        >
+          <option value="" disabled>Select a sensor</option>
+          @for (sensor of sensorData.sensorTypes(); track sensor) {
+            <option [value]="sensor">{{ sensor }}</option>
+          }
+        </select>
+      </label>
+      @if (sensorData.sensorTypes().length === 0) {
+        <p class="dialog-note">No sensors found in readings for the selected account.</p>
+      }
+      <p>
+        Are you sure you want to delete <strong>{{ deleteSensorName() || 'this sensor' }}</strong
+        >?
+      </p>
+      <p class="dialog-note">
+        Deletion is not connected to a sensor registry yet. Confirming will not remove any sensor
+        data.
+      </p>
+      @if (sensorNotice()) {
+        <p class="dialog-notice" role="status">{{ sensorNotice() }}</p>
+      }
+      <div class="dialog-actions">
+        <button type="button" class="btn" (click)="deleteSensorDialog.close()">Cancel</button>
+        <button
+          type="submit"
+          class="btn btn-danger"
+          [disabled]="!deleteSensorName() || sensorData.sensorTypes().length === 0"
+        >
+          Confirm
+        </button>
+      </div>
+    </form>
+  </dialog>
 </section>
