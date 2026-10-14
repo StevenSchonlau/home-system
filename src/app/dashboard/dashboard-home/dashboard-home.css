@@ -151,6 +151,10 @@ h2 {
   font: inherit;
 }
 
+.sensor-form select {
+  padding: 0 0.65rem;
+}
+
 .sensor-form textarea {
   resize: vertical;
 }

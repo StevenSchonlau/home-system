@@ -191,7 +191,9 @@
         <p class="dialog-notice" role="status">{{ sensorNotice() }}</p>
       }
       <div class="dialog-actions">
-        <button type="button" class="btn" (click)="addSensorDialog.close()">Cancel</button>
+        <button type="button" class="btn" (click)="addSensorDialog.close()">
+          {{ sensorAdded() ? 'Close' : 'Cancel' }}
+        </button>
         <button
           type="submit"
           class="btn btn-primary"
