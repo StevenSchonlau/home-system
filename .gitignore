@@ -42,3 +42,6 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Secrets (API keys). .env.example is the committed template.
+.env

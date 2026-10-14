@@ -181,3 +181,24 @@ export const ALERTS: readonly AlertInfo[] = [
     ]
   }
 ];
+
+// ---------- INSURANCE SCORE ----------
+// Demo numbers. Change these to try different homes and cars.
+export const SCORES = {
+  home: { value: 155000, baseline: 1200, costPerPoint: 6 },  // $155k house, ~$1,200/yr insurance
+  car:  { value: 25000,  baseline: 1800, costPerPoint: 9 }   // $25k car, ~$1,800/yr insurance
+};
+
+// Letter grade for a number of penalty points.
+export function gradeFor(points: number): string {
+  if (points === 0)  return "A+";
+  if (points <= 5)   return "A";
+  if (points <= 10)  return "A-";
+  if (points <= 15)  return "B+";
+  if (points <= 20)  return "B";
+  if (points <= 25)  return "B-";
+  if (points <= 30)  return "C+";
+  if (points <= 35)  return "C";
+  if (points <= 40)  return "C-";
+  return "D";
+}
