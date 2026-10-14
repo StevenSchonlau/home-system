@@ -21,6 +21,7 @@ export interface AlertInfo {
   uploadPrompt?: string;
   replacedMessage?: string;
   orderMessage?: string;
+  calendarId?: number; // set for reminders from the /Calendar endpoint (see calendar-reminders.service.ts)
 }
 
 // ---------- THE LIST OF ALERTS ----------

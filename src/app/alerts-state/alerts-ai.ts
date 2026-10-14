@@ -80,8 +80,10 @@ export function describeAlertsState({ queue, openIssues, now }: AlertsSnapshot):
     lines.push('The queue is empty: all statuses are green.');
   }
   for (const { info, time } of queue) {
+    // Calendar reminders carry their due time; other events the time they happened.
+    const when = `${info.calendarId !== undefined ? 'from the calendar, due' : 'since'} ${formatTime(time)}`;
     lines.push(
-      `- ${info.type.toUpperCase()}: ${info.name} since ${formatTime(time)}. ${info.title}: ${info.message} ` +
+      `- ${info.type.toUpperCase()}: ${info.name} ${when}. ${info.title}: ${info.message} ` +
         `Options: ${info.buttons.map((b) => b.label).join(', ')}.`,
     );
   }

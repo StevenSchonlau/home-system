@@ -109,8 +109,8 @@ export class SensorDataService {
 }
 
 // The API sends UTC times without a "Z" (e.g. "2026-10-13T14:47:37.587"), which browsers would
-// read as local time. Treat any time without an explicit offset as UTC.
-function parseApiTime(dateTime: string): number {
+// read as local time. Treat any time without an explicit offset as UTC. (Also used for /Calendar.)
+export function parseApiTime(dateTime: string): number {
   const hasOffset = /(Z|[+-]\d{2}:?\d{2})$/i.test(dateTime);
   return Date.parse(hasOffset ? dateTime : `${dateTime}Z`);
 }

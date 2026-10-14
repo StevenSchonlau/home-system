@@ -32,6 +32,9 @@ export class AlertsService {
 
   private nextId = 1;
 
+  // Calendar reminders dismissed this session (by calendar id), so the next fetch doesn't re-add them.
+  private readonly dismissedCalendarIds = new Set<number>();
+
   // The queue in display order: all alerts first (oldest first), then all reminders (oldest first).
   readonly sortedQueue = computed(() => {
     const queue = this.queue_();
@@ -50,7 +53,10 @@ export class AlertsService {
 
   // Add a new event to the queue. "twoDaysAgo" is a demo helper: true pretends it happened 2 days ago.
   addEvent(alertInfo: AlertInfo, twoDaysAgo = false): void {
-    const time = twoDaysAgo ? new Date(Date.now() - 2 * ONE_DAY) : new Date();
+    this.addEventAt(alertInfo, twoDaysAgo ? new Date(Date.now() - 2 * ONE_DAY) : new Date());
+  }
+
+  private addEventAt(alertInfo: AlertInfo, time: Date): void {
     const entry: QueueEntry = { id: this.nextId++, info: alertInfo, time };
     if (alertInfo.type === 'reminder') {
       this.openIssue(alertInfo);
@@ -73,6 +79,10 @@ export class AlertsService {
 
   // Remove an event from the queue (after a button is clicked).
   removeEvent(id: number): void {
+    const calendarId = this.findEvent(id)?.info.calendarId;
+    if (calendarId !== undefined) {
+      this.dismissedCalendarIds.add(calendarId);
+    }
     this.queue_.update((queue) => queue.filter((e) => e.id !== id));
     if (this.selectedId_() === id) {
       this.selectTop();
@@ -103,6 +113,35 @@ export class AlertsService {
       this.queue_.update((queue) => [...queue, added]);
     }
     this.selectedId_.set(entry.id);
+  }
+
+  // Make the queue's calendar reminders match `reminders` (the ones due today): add new ones (unless
+  // dismissed this session), update changed ones, and drop ones that are gone or no longer due today.
+  syncCalendarReminders(reminders: { info: AlertInfo; time: Date }[]): void {
+    const wanted = new Map(
+      reminders
+        .filter((r) => !this.dismissedCalendarIds.has(r.info.calendarId!))
+        .map((r) => [r.info.calendarId!, r]),
+    );
+    const current = this.queue_().filter((e) => e.info.calendarId !== undefined);
+
+    const stale = current.filter((e) => {
+      const next = wanted.get(e.info.calendarId!);
+      return !next || next.time.getTime() !== e.time.getTime() || JSON.stringify(next.info) !== JSON.stringify(e.info);
+    });
+    if (stale.length) {
+      const staleIds = new Set(stale.map((e) => e.id));
+      this.queue_.update((queue) => queue.filter((e) => !staleIds.has(e.id)));
+      if (!this.selectedEvent()) {
+        this.selectTop();
+      }
+    }
+    const kept = new Set(current.filter((e) => !stale.includes(e)).map((e) => e.info.calendarId));
+    for (const [calendarId, { info, time }] of wanted) {
+      if (!kept.has(calendarId)) {
+        this.addEventAt(info, time);
+      }
+    }
   }
 
   // Track a reminder as an open issue (only once, even if triggered again).
