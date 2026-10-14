@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map, Observable, retry, throwError, timer } from 'rxjs';
-import { ENV } from './env';
+import { from, map, Observable, retry, switchMap, throwError, timer } from 'rxjs';
+import { loadEnv } from './env';
 
 const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 const PLACEHOLDER_KEY = 'your-gemini-api-key-here';
@@ -14,16 +14,21 @@ interface GenerateContentResponse {
 
 // Sends a prompt straight to the Gemini API (it allows browser requests, so no proxy is needed).
 // The key and model come from .env: GEMINI_API_KEY and GEMINI_MODEL (default gemini-3.5-flash-lite).
+// Without a .env (or key), AI features show a message instead of failing.
 @Injectable({ providedIn: 'root' })
 export class GeminiService {
   private readonly http = inject(HttpClient);
 
   generate(prompt: string): Observable<string> {
-    const apiKey = ENV['GEMINI_API_KEY'];
+    return from(loadEnv()).pipe(switchMap((env) => this.send(prompt, env)));
+  }
+
+  private send(prompt: string, env: Record<string, string>): Observable<string> {
+    const apiKey = env['GEMINI_API_KEY'];
     if (!apiKey || apiKey === PLACEHOLDER_KEY) {
-      return throwError(() => new Error('Add your Gemini API key to .env as GEMINI_API_KEY.'));
+      return throwError(() => new Error('Add your Gemini API key to .env as GEMINI_API_KEY, then reload.'));
     }
-    const model = ENV['GEMINI_MODEL'] || DEFAULT_MODEL;
+    const model = env['GEMINI_MODEL'] || DEFAULT_MODEL;
     return this.http
       .post<GenerateContentResponse>(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
