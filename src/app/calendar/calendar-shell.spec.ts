@@ -58,8 +58,9 @@ describe('Calendar in the application shell', () => {
     const root = fixture.nativeElement as HTMLElement;
     const dashboardLinks = root.querySelectorAll<HTMLAnchorElement>('nav a[href="/dashboard"]');
     expect(dashboardLinks).toHaveLength(1);
-    expect(root.querySelector('nav a[href="/weather"]')).not.toBeNull();
-    expect(root.querySelector('nav a[href="/air-quality"]')).not.toBeNull();
+    expect(root.querySelector('nav a[href="/overview"]')).not.toBeNull();
+    expect(root.querySelector('nav a[href="/calendar"]')).not.toBeNull();
+    expect(root.querySelector('nav a[href="/admin-triggers"]')).not.toBeNull();
     dashboardLinks[0].click();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -71,6 +72,7 @@ describe('Calendar in the application shell', () => {
     expect(TestBed.inject(Router).url).toBe('/calendar');
     expect(root.querySelectorAll('app-calendar .day')).toHaveLength(42);
     expect(dashboardLinks[0].getAttribute('aria-current')).toBeNull();
+    expect(root.querySelector('nav a[href="/calendar"]')!.getAttribute('aria-current')).toBe('page');
     dashboardLinks[0].click();
     await fixture.whenStable();
     fixture.detectChanges();
