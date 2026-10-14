@@ -1,0 +1,34 @@
+<!-- A form with a single text field submits on Enter, so it needs no button. -->
+<form class="bar" role="search" (submit)="ask($event, input)">
+  <svg class="spark" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" />
+  </svg>
+  <input
+    #input
+    type="text"
+    name="question"
+    [placeholder]="placeholder()"
+    [attr.aria-label]="placeholder()"
+    [attr.aria-busy]="loading()"
+    enterkeyhint="send"
+    maxlength="500"
+    autocomplete="off"
+  />
+</form>
+
+@if (question()) {
+  <section class="answer" aria-live="polite">
+    <div class="head">
+      <p class="question">{{ question() }}</p>
+      <button type="button" class="close" (click)="clear()" aria-label="Close answer" title="Close">×</button>
+    </div>
+    @if (loading()) {
+      <p class="muted" role="status">Asking Gemini…</p>
+    } @else if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    } @else {
+      <p class="text">{{ answer() }}</p>
+      <p class="muted meta">Gemini · based on {{ basis() }}</p>
+    }
+  </section>
+}

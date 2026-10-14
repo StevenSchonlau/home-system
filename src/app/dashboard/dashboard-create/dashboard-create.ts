@@ -31,6 +31,7 @@ export class DashboardCreate {
     { value: 'bar', label: 'Bar chart', description: 'how often each value appears' },
     { value: 'pie', label: 'Pie chart', description: 'share of each value' },
     { value: 'stats', label: 'Stats', description: 'min / max / average / std dev' },
+    { value: 'ai', label: 'AI summary', description: 'Gemini describes what the data shows' },
   ];
   protected readonly colorModes: { value: ColorMode; label: string }[] = [
     { value: 'none', label: 'None' },

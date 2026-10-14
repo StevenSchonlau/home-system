@@ -10,6 +10,7 @@
 //  - the functions the page's buttons call are returned at the end.
 // Type checking is off for this file because the demo is plain JavaScript.
 import type { AlertsService } from '../alerts-state/alerts.service';
+import { gradeFor, SCORES } from '../alerts-state/alerts.catalog';
 
 export function startOverview(root: ShadowRoot, state: AlertsService) {
   const document = {
@@ -40,25 +41,8 @@ export function startOverview(root: ShadowRoot, state: AlertsService) {
   // The trigger lists are on the Admin Triggers page.
 
   // ---------- INSURANCE SCORE ----------
-  // Demo numbers. Change these to try different homes and cars.
-  const SCORES = {
-    home: { value: 155000, baseline: 1200, costPerPoint: 6 },  // $155k house, ~$1,200/yr insurance
-    car:  { value: 25000,  baseline: 1800, costPerPoint: 9 }   // $25k car, ~$1,800/yr insurance
-  };
-
-  // Letter grade for a number of penalty points.
-  function gradeFor(points) {
-    if (points === 0)  return "A+";
-    if (points <= 5)   return "A";
-    if (points <= 10)  return "A-";
-    if (points <= 15)  return "B+";
-    if (points <= 20)  return "B";
-    if (points <= 25)  return "B-";
-    if (points <= 30)  return "C+";
-    if (points <= 35)  return "C";
-    if (points <= 40)  return "C-";
-    return "D";
-  }
+  // The score settings (SCORES) and gradeFor() are in alerts-state/alerts.catalog.ts,
+  // shared with the AI overview.
 
   // Turns 1200 into "$1,200".
   function money(amount) {

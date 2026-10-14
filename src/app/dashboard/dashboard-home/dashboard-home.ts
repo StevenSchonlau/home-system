@@ -10,6 +10,9 @@ import { DashboardTile } from '../dashboard-tile/dashboard-tile';
 import { SensorChart } from '../tile-content/sensor-chart';
 import { StateEntries } from '../tile-content/state-entries';
 import { StatsSummary } from '../tile-content/stats-summary';
+import { AiSummary } from '../tile-content/ai-summary';
+import { AskAi } from '../../ai/ask-ai/ask-ai';
+import { injectDashboardQuestion } from '../dashboard-question';
 import { TimeRangePicker } from '../time-range-picker/time-range-picker';
 import { AccountPicker } from '../account-picker';
 import { AirQualityWidget } from '../widgets/air-quality-widget';
@@ -23,6 +26,8 @@ import { WeatherWidget } from '../widgets/weather-widget';
     DashboardTile,
     StateEntries,
     StatsSummary,
+    AiSummary,
+    AskAi,
     SensorChart,
     TimeRangePicker,
     CalendarWidget,
@@ -41,6 +46,7 @@ export class DashboardHome {
   protected readonly editing = signal(false);
   protected readonly importError = signal('');
   protected readonly display = tileDisplay;
+  protected readonly prepareQuestion = injectDashboardQuestion();
 
   // "Good morning, Steven". Rechecked every minute so it changes over while the page is open.
   private readonly now = signal(new Date());
