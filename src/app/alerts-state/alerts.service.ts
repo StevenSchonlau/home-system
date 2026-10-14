@@ -1,5 +1,12 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { AlertInfo, ALERTS } from './alerts.catalog';
+import { AlertInfo, ALERTS, SCORES } from './alerts.catalog';
+
+// Just using Pulse saves 2% of the baseline policy cost.
+export const BASE_SAVINGS_RATE = 0.02;
+
+function baseSavings(asset: 'home' | 'car'): number {
+  return SCORES[asset].baseline * BASE_SAVINGS_RATE;
+}
 
 export interface QueueEntry {
   id: number;
@@ -25,6 +32,12 @@ export class AlertsService {
   // queue, but it stays here until it's fixed with "Order Replacement" or "Mark as replaced".
   private readonly openIssues_ = signal<AlertInfo[]>([]);
   readonly openIssues = this.openIssues_.asReadonly();
+
+  // "Saving with Progressive Pulse": a running tally, per score card. It starts at the base saving
+  // for using Pulse (BASE_SAVINGS_RATE of the baseline policy cost) and grows by the yearly cost
+  // each resolved reminder no longer adds. Reset from the Admin Triggers page.
+  private readonly savings_ = signal({ home: baseSavings('home'), car: baseSavings('car') });
+  readonly savings = this.savings_.asReadonly();
 
   // The id of the event shown in full on the Overview.
   private readonly selectedId_ = signal<number | null>(null);
@@ -95,11 +108,20 @@ export class AlertsService {
 
   // A reminder was fixed: stop counting it, and clear any copies from the queue.
   resolveIssue(alertInfo: AlertInfo): void {
+    if (alertInfo.asset && alertInfo.penalty && this.openIssues_().includes(alertInfo)) {
+      const saved = alertInfo.penalty * SCORES[alertInfo.asset].costPerPoint;
+      this.savings_.update((savings) => ({ ...savings, [alertInfo.asset!]: savings[alertInfo.asset!] + saved }));
+    }
     this.openIssues_.update((issues) => issues.filter((i) => i !== alertInfo));
     this.queue_.update((queue) => queue.filter((e) => e.info !== alertInfo));
     if (!this.selectedEvent()) {
       this.selectTop();
     }
+  }
+
+  // Admin: start one card's savings tally over, from the base saving.
+  resetSavings(asset: 'home' | 'car'): void {
+    this.savings_.update((savings) => ({ ...savings, [asset]: baseSavings(asset) }));
   }
 
   // Clicking an unaddressed reminder on a score card:

@@ -51,6 +51,7 @@ export class Overview {
     effect(() => {
       alerts.queue();
       alerts.openIssues();
+      alerts.savings();
       alerts.selectedId();
       untracked(() => running?.render());
     });

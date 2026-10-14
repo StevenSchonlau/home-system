@@ -170,6 +170,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .cost-table .issue { cursor: pointer; }
 .cost-table .issue:hover td { background: var(--issue-hover); text-decoration: underline; }
 .cost-table .total td { font-weight: 800; border-bottom: none; padding-top: 8px; }
+.cost-table .savings td { color: var(--good); font-weight: 700; border-top: 1px solid var(--line); border-bottom: none; }
 .score-note { margin: 8px 0 0; font-size: 12px; color: var(--ink-4); }
 .score-left {
   display: flex;

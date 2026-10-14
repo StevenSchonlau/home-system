@@ -9,6 +9,21 @@
     <a routerLink="/overview">View on the Overview →</a>
   </p>
 
+  <section class="savings" aria-labelledby="savings-title">
+    <h2 id="savings-title">Saving with Progressive Pulse</h2>
+    <ul class="trigger-list savings-list">
+      @for (asset of savingsAssets; track asset.key) {
+        <li>
+          <span>{{ asset.label }} savings: <strong>{{ alerts.savings()[asset.key] | currency: 'USD' : 'symbol' : '1.0-0' }} / yr</strong></span>
+          <button type="button" class="trigger-btn" (click)="alerts.resetSavings(asset.key)">
+            Reset {{ asset.label | lowercase }} savings
+          </button>
+        </li>
+      }
+    </ul>
+    <p class="savings-note">Reset sets the tally back to the base saving (2% of the baseline policy cost).</p>
+  </section>
+
   <div class="layout">
     @for (list of lists; track list.title) {
       <section>

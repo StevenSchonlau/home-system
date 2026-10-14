@@ -100,6 +100,7 @@ export function startOverview(root: ShadowRoot, state: AlertsService) {
     document.getElementById(asset + "-baseline").textContent = money(settings.baseline) + " / yr";
     document.getElementById(asset + "-added").textContent = "+" + money(added) + " / yr";
     document.getElementById(asset + "-total").textContent = money(settings.baseline + added) + " / yr";
+    document.getElementById(asset + "-savings").textContent = money(state.savings()[asset]) + " / yr";
 
     // One clickable line per open issue, showing what it adds to the cost
     const rows = document.getElementById(asset + "-issues");

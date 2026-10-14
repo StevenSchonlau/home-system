@@ -115,3 +115,24 @@ h1 {
   color: white;
   white-space: nowrap;
 }
+
+/* "Saving with Progressive Pulse" reset buttons, above the trigger lists */
+.savings {
+  max-width: 588px;
+  margin-bottom: 24px;
+}
+
+.savings h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+.savings-list li {
+  border-left: 6px solid var(--good, #1f9d48);
+}
+
+.savings-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
