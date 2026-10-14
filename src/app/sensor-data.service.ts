@@ -21,6 +21,8 @@ export interface SensorReading {
   dataValue: string; // numeric, but the API returns it as a string
 }
 
+export type NewSensorReading = Omit<SensorReading, 'id'>;
+
 export interface SensorPoint {
   time: number; // epoch ms
   value: string;
@@ -39,6 +41,18 @@ export class SensorDataService {
   private readonly accounts = inject(AccountService);
   private readonly readings = signal<SensorReading[]>([]);
   readonly error = signal('');
+
+  // Sensor names available for the selected account, based on received readings.
+  readonly sensorTypes = computed(() => {
+    const account = this.accounts.selected();
+    return [
+      ...new Set(
+        this.readings()
+          .filter((reading) => reading.accountName === account)
+          .map((reading) => reading.sensorType),
+      ),
+    ].sort((a, b) => a.localeCompare(b));
+  });
 
   // Readings for the selected account (exact, case-sensitive match), grouped into one series per sensorType + DataKey.
   readonly series = computed(() => {
@@ -72,11 +86,14 @@ export class SensorDataService {
 
   constructor() {
     const fetchReadings: () => Observable<SensorReading[]> = USE_MOCK_DATA
-      ? ((api) => () => of(api()))(createMockApi())
+      ? (
+          (api) => () =>
+            of(api())
+        )(createMockApi())
       : () => {
-        console.log('SensorDataService.fetchReadings', API_URL);
-        return this.http.get<SensorReading[]>(API_URL);
-      };
+          console.log('SensorDataService.fetchReadings', API_URL);
+          return this.http.get<SensorReading[]>(API_URL);
+        };
 
     timer(0, POLL_INTERVAL_MS)
       .pipe(
@@ -101,6 +118,10 @@ export class SensorDataService {
 
   label(key: string): string {
     return this.series().get(key)?.label ?? key;
+  }
+
+  addReading(reading: NewSensorReading): Observable<void> {
+    return this.http.post<void>(API_URL, reading);
   }
 
   latest(key: string): string | null {

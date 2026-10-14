@@ -1,5 +1,14 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../account.service';
 import { CalendarWidget } from '../../calendar/calendar-widget';
@@ -40,17 +49,28 @@ import { WeatherWidget } from '../widgets/weather-widget';
   templateUrl: './dashboard-home.html',
 })
 export class DashboardHome {
+  @ViewChild('addSensorDialog') private addSensorDialog!: ElementRef<HTMLDialogElement>;
+  @ViewChild('deleteSensorDialog') private deleteSensorDialog!: ElementRef<HTMLDialogElement>;
+
   protected readonly configService = inject(DashboardConfigService);
   protected readonly sensorData = inject(SensorDataService);
   private readonly accounts = inject(AccountService);
   protected readonly editing = signal(false);
   protected readonly importError = signal('');
+  protected readonly sensorNotice = signal('');
+  protected readonly deleteSensorName = signal('');
+  protected readonly sensorDateTime = signal('');
+  protected readonly sensorAccountName = signal(this.accounts.selected());
+  protected readonly isAddingSensor = signal(false);
+  protected readonly sensorAdded = signal(false);
   protected readonly display = tileDisplay;
   protected readonly prepareQuestion = injectDashboardQuestion();
 
   // "Good morning, Steven". Rechecked every minute so it changes over while the page is open.
   private readonly now = signal(new Date());
-  protected readonly greeting = computed(() => `${partOfDay(this.now())}, ${this.accounts.selected()}`);
+  protected readonly greeting = computed(
+    () => `${partOfDay(this.now())}, ${this.accounts.selected()}`,
+  );
 
   constructor() {
     const timer = setInterval(() => this.now.set(new Date()), 60_000);
@@ -59,6 +79,74 @@ export class DashboardHome {
 
   protected drop(event: CdkDragDrop<unknown>): void {
     this.configService.moveTile(event.previousIndex, event.currentIndex);
+  }
+
+  protected openAddSensor(): void {
+    this.sensorNotice.set('');
+    this.sensorDateTime.set(new Date().toISOString());
+    this.sensorAccountName.set(this.accounts.selected());
+    this.isAddingSensor.set(false);
+    this.sensorAdded.set(false);
+    this.addSensorDialog.nativeElement.showModal();
+  }
+
+  protected openDeleteSensor(): void {
+    this.sensorNotice.set('');
+    this.deleteSensorName.set('');
+    this.deleteSensorDialog.nativeElement.showModal();
+  }
+
+  protected submitAddSensor(event: SubmitEvent): void {
+    event.preventDefault();
+    if (this.isAddingSensor() || this.sensorAdded()) {
+      return;
+    }
+    if (!(event.currentTarget instanceof HTMLFormElement)) {
+      throw new Error('Add sensor form is unavailable.');
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const field = (name: string) => String(formData.get(name) ?? '').trim();
+    const sensorType = field('sensorType');
+    const accountName = field('accountName');
+    const dataKey = field('dataKey');
+    const dataValue = field('dataValue');
+    if (!sensorType || !accountName || !dataKey || !dataValue) {
+      this.sensorNotice.set('Complete all required fields before adding the sensor.');
+      return;
+    }
+
+    this.isAddingSensor.set(true);
+    this.sensorData
+      .addReading({
+        sensorType,
+        dateTime: this.sensorDateTime(),
+        accountName,
+        dataKey,
+        dataValue,
+      })
+      .subscribe({
+        next: () => {
+          this.isAddingSensor.set(false);
+          this.sensorAdded.set(true);
+          this.sensorNotice.set('Sensor reading added successfully.');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.isAddingSensor.set(false);
+          this.sensorNotice.set(
+            error.status === 0
+              ? 'Could not add sensor. Check the network connection and API access, then try again.'
+              : `Could not add sensor (HTTP ${error.status} ${error.statusText}). Please try again.`,
+          );
+        },
+      });
+  }
+
+  protected confirmDeleteSensor(event: SubmitEvent): void {
+    event.preventDefault();
+    this.sensorNotice.set(
+      'Sensor deletion is not connected to a sensor registry yet. No changes were made.',
+    );
   }
 
   protected exportConfig(): void {
@@ -87,7 +175,9 @@ export class DashboardHome {
       }
       this.configService.set(parsed as DashboardConfig);
     } catch {
-      this.importError.set('That file is not a valid dashboard config (expected { "tiles": [...] }).');
+      this.importError.set(
+        'That file is not a valid dashboard config (expected { "tiles": [...] }).',
+      );
     }
   }
 }
