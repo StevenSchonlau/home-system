@@ -1,4 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   computed,
@@ -58,6 +59,10 @@ export class DashboardHome {
   protected readonly importError = signal('');
   protected readonly sensorNotice = signal('');
   protected readonly deleteSensorName = signal('');
+  protected readonly sensorDateTime = signal('');
+  protected readonly sensorAccountName = signal(this.accounts.selected());
+  protected readonly isAddingSensor = signal(false);
+  protected readonly sensorAdded = signal(false);
   protected readonly display = tileDisplay;
   protected readonly prepareQuestion = injectDashboardQuestion();
 
@@ -78,6 +83,10 @@ export class DashboardHome {
 
   protected openAddSensor(): void {
     this.sensorNotice.set('');
+    this.sensorDateTime.set(new Date().toISOString());
+    this.sensorAccountName.set(this.accounts.selected());
+    this.isAddingSensor.set(false);
+    this.sensorAdded.set(false);
     this.addSensorDialog.nativeElement.showModal();
   }
 
@@ -89,9 +98,48 @@ export class DashboardHome {
 
   protected submitAddSensor(event: SubmitEvent): void {
     event.preventDefault();
-    this.sensorNotice.set(
-      'Sensor creation is not connected to a sensor registry yet. No changes were made.',
-    );
+    if (this.isAddingSensor() || this.sensorAdded()) {
+      return;
+    }
+    if (!(event.currentTarget instanceof HTMLFormElement)) {
+      throw new Error('Add sensor form is unavailable.');
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const field = (name: string) => String(formData.get(name) ?? '').trim();
+    const sensorType = field('sensorType');
+    const accountName = field('accountName');
+    const dataKey = field('dataKey');
+    const dataValue = field('dataValue');
+    if (!sensorType || !accountName || !dataKey || !dataValue) {
+      this.sensorNotice.set('Complete all required fields before adding the sensor.');
+      return;
+    }
+
+    this.isAddingSensor.set(true);
+    this.sensorData
+      .addReading({
+        sensorType,
+        dateTime: this.sensorDateTime(),
+        accountName,
+        dataKey,
+        dataValue,
+      })
+      .subscribe({
+        next: () => {
+          this.isAddingSensor.set(false);
+          this.sensorAdded.set(true);
+          this.sensorNotice.set('Sensor reading added successfully.');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.isAddingSensor.set(false);
+          this.sensorNotice.set(
+            error.status === 0
+              ? 'Could not add sensor. Check the network connection and API access, then try again.'
+              : `Could not add sensor (HTTP ${error.status} ${error.statusText}). Please try again.`,
+          );
+        },
+      });
   }
 
   protected confirmDeleteSensor(event: SubmitEvent): void {

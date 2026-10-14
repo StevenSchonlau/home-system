@@ -161,32 +161,44 @@
   <dialog #addSensorDialog class="sensor-dialog" aria-labelledby="add-sensor-title">
     <form class="sensor-form" (submit)="submitAddSensor($event)">
       <h2 id="add-sensor-title">Add Sensor</h2>
-      <p class="dialog-note">
-        This form is not connected to a sensor registry yet. Submitting it will not save a sensor or
-        add options to the dashboard tile form.
-      </p>
       <label>
-        Sensor Name
-        <input type="text" name="sensorName" required />
+        Sensor Type (Name)
+        <input type="text" name="sensorType" required />
       </label>
       <label>
-        Sensor location <span>(optional)</span>
-        <input type="text" name="sensorLocation" />
+        Date Added
+        <input type="text" name="dateTime" [value]="sensorDateTime()" readonly />
       </label>
       <label>
-        Date added
-        <input type="date" name="dateAdded" required />
+        Account Name
+        <input
+          type="text"
+          name="accountName"
+          required
+          [value]="sensorAccountName()"
+          (input)="sensorAccountName.set($any($event.target).value)"
+        />
       </label>
       <label>
-        Description <span>(optional)</span>
-        <textarea name="description" rows="3"></textarea>
+        Sensor Metric
+        <input type="text" name="dataKey" placeholder="Temperature, Water Level, etc." required />
+      </label>
+      <label>
+        Initial metric estimate
+        <input type="text" name="dataValue" placeholder="98 degrees, 10L, etc." required />
       </label>
       @if (sensorNotice()) {
         <p class="dialog-notice" role="status">{{ sensorNotice() }}</p>
       }
       <div class="dialog-actions">
         <button type="button" class="btn" (click)="addSensorDialog.close()">Cancel</button>
-        <button type="submit" class="btn btn-primary">Add Sensor</button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="isAddingSensor() || sensorAdded()"
+        >
+          {{ isAddingSensor() ? 'Adding…' : sensorAdded() ? 'Added' : 'Add Sensor' }}
+        </button>
       </div>
     </form>
   </dialog>
@@ -216,8 +228,7 @@
         >?
       </p>
       <p class="dialog-note">
-        Deletion is not connected to a sensor registry yet. Confirming will not remove any sensor
-        data.
+        Deletion is not connected to the sensor API yet. Confirming will not remove any sensor data.
       </p>
       @if (sensorNotice()) {
         <p class="dialog-notice" role="status">{{ sensorNotice() }}</p>

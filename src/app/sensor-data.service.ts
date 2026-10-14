@@ -21,6 +21,8 @@ export interface SensorReading {
   dataValue: string; // numeric, but the API returns it as a string
 }
 
+export type NewSensorReading = Omit<SensorReading, 'id'>;
+
 export interface SensorPoint {
   time: number; // epoch ms
   value: string;
@@ -116,6 +118,10 @@ export class SensorDataService {
 
   label(key: string): string {
     return this.series().get(key)?.label ?? key;
+  }
+
+  addReading(reading: NewSensorReading): Observable<void> {
+    return this.http.post<void>(API_URL, reading);
   }
 
   latest(key: string): string | null {
