@@ -8,6 +8,10 @@
     Event queue: <span class="count">{{ alerts.queue().length }}</span>
     <a routerLink="/overview">View on the Overview →</a>
   </p>
+  <p class="email-note">Triggering an alert also emails {{ emailTo }}.</p>
+  @if (emailStatus(); as status) {
+    <p class="email-status" [class.failed]="status.failed" role="status">{{ status.text }}</p>
+  }
 
   <section class="savings" aria-labelledby="savings-title">
     <h2 id="savings-title">Saving with Progressive Pulse</h2>
@@ -41,7 +45,7 @@
                     <input #box type="checkbox" (change)="backdate(info, box)" />
                     2 days ago
                   </label>
-                  <button type="button" class="trigger-btn" (click)="alerts.addEvent(info)">Trigger</button>
+                  <button type="button" class="trigger-btn" (click)="trigger(info)">Trigger</button>
                 </div>
               </li>
             }

@@ -136,3 +136,20 @@ h1 {
   font-size: 13px;
   color: var(--text-muted);
 }
+
+/* Alert email note and the last send's result */
+.email-note {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.email-status {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--good, #1f9d48);
+}
+
+.email-status.failed {
+  color: var(--danger);
+}
