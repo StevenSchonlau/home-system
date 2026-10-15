@@ -1,6 +1,8 @@
 import { CurrencyPipe, LowerCasePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { ALERT_EMAIL_TO, AlertEmailService } from '../alerts-state/alert-email.service';
 import { AlertInfo } from '../alerts-state/alerts.catalog';
 import { AlertsService } from '../alerts-state/alerts.service';
 
@@ -20,6 +22,11 @@ interface TriggerList {
 })
 export class AdminTriggers {
   protected readonly alerts = inject(AlertsService);
+  private readonly email = inject(AlertEmailService);
+  protected readonly emailTo = ALERT_EMAIL_TO;
+  private readonly destroyRef = inject(DestroyRef);
+  // Result of the last alert email ("Emailed … about Smoke alarm" or an error), shown under the intro.
+  protected readonly emailStatus = signal<{ text: string; failed: boolean } | null>(null);
 
   // Reminders (Home, Car) | Alerts, like the original page.
   protected readonly lists: TriggerList[] = [
@@ -44,11 +51,29 @@ export class AdminTriggers {
     { key: 'car', label: 'Car' },
   ] as const;
 
+  // Add the event to the queue. Alerts (not reminders) also send an HTML email to ALERT_EMAIL_TO.
+  protected trigger(info: AlertInfo, twoDaysAgo = false): void {
+    this.alerts.addEvent(info, twoDaysAgo);
+    if (info.type !== 'alert') {
+      return;
+    }
+    const time = twoDaysAgo ? new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) : new Date();
+    this.emailStatus.set({ text: `Emailing ${ALERT_EMAIL_TO} about ${info.name}…`, failed: false });
+    this.email
+      .sendAlert(info, time)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.emailStatus.set({ text: `Emailed ${ALERT_EMAIL_TO} about ${info.name}.`, failed: false }),
+        error: () =>
+          this.emailStatus.set({ text: `Couldn't send the email about ${info.name}. The alert is still in the queue.`, failed: true }),
+      });
+  }
+
   // Demo helper: ticking "2 days ago" adds the event as if it happened 2 days ago,
   // then clears the tick so it's ready to use again.
   protected backdate(info: AlertInfo, box: HTMLInputElement): void {
     if (box.checked) {
-      this.alerts.addEvent(info, true);
+      this.trigger(info, true);
       setTimeout(() => (box.checked = false), 400); // brief tick, then clear
     }
   }
