@@ -1,9 +1,10 @@
 # Readme
 
 ## Versions: (what I installed)
+
 - docker desktop 4.94.0 (latest download from website)
-- node.js 24.21.0 (latest download from website) - this will install npm  11.19.0
-	- npm install -g @angular/cli - for me this installed 22.2.2
+- node.js 24.21.0 (latest download from website) - this will install npm 11.19.0
+  - npm install -g @angular/cli - for me this installed 22.2.2
 
 ## To run locally:
 
@@ -46,6 +47,7 @@ Browser location access requires HTTPS or localhost, as on the weather page.
 Connect via ssh to the pi
 
 Run these commands:
+
 - sudo apt update && sudo apt upgrade -y
 - curl -sSL https://get.docker.com | sh
 - sudo usermod -aG docker $USER
@@ -62,21 +64,29 @@ To see docker containers running on the pi: docker ps
 
 To stop the container: docker stop home-system-app
 
-Any time you make a change, pull the repo on the pi and run these docker commands: 
+Any time you make a change, pull the repo on the pi and run these docker commands:
+
 - docker build -t angular-pi5-app:latest .
 - docker rm -f home-system-app
 - docker run -d -p 8080:80 --name home-system-app angular-pi5-app:latest
+
+## HTTPS over local network:
+
+Make an account with tailscale. Download it onto the device you want to use.
+
+Run these commands on the pi:
+
+- curl -fsSL https://tailscale.com/install.sh | sh
+- sudo tailscale up
+- click on the link and log in
+- make sure you have HTTPS and MagicDNS enabled in the admin page
+- sudo tailscale serve --bg 8080
 
 <br>
 <hr>
 <br>
 
-
-
 # Boilerplate Angular README:
-
-
-
 
 # HomeSystem
 
